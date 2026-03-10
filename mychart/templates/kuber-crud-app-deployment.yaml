@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: auth-kuber-service-space
+  name: {{ include "kuber-crud-app.name" . }}-dp
+  labels:
+    app: {{ include "kuber-crud-app.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "kuber-crud-app.name" . }}
+    metadata:
+      annotations:
+        redeploy-timestamp: "{{ now | unixEpoch }}"
+  template:
+    metadata:
+      labels:
+        app: {{ include "kuber-crud-app.name" . }}
+    spec:
+      containers:
+        - name: {{ include "kuber-crud-app.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          env:
+            - name: DB_CLASS_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "kuber-crud-app.name" . }}-config
+                  key: DB_CLASS_NAME
+            - name: DB_SQL_INIT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "kuber-crud-app.name" . }}-config
+                  key: DB_SQL_INIT
+            - name: DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "kuber-crud-app.name" . }}-config
+                  key: DB_URL
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kuber-crud-app.name" . }}-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kuber-crud-app.name" . }}-secret
+                  key: DB_PASSWORD
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.containerPort }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.app.healthPath }}
+              port: {{ .Values.app.containerPort }}
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.app.healthPath }}
+              port: {{ .Values.app.containerPort }}
+            initialDelaySeconds: 20
+            periodSeconds: 5

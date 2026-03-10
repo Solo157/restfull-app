@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: auth-kuber-service-space
+  name: {{ include "kuber-crud-app.name" . }}-service
+spec:
+  selector:
+    app: {{ include "kuber-crud-app.name" . }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+  type: {{ .Values.service.type }}

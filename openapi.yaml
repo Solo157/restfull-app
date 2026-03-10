@@ -1,0 +1,174 @@
+openapi: 3.0.3
+info:
+  title: API
+  version: 1.0.0
+  description: API для управления пользователями, платежами, заказами и нотификациями
+
+paths:
+  /auth/register:
+    post:
+      summary: Создать пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                firstname:
+                  type: string
+                phone:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - firstname
+                - email
+                - password
+      responses:
+        '200':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /billing/account/deposit:
+    post:
+      summary: Пополнить счет пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                amount:
+                  type: number
+              required:
+                - userId
+                - amount
+      responses:
+        '200':
+          description: Баланс пополнен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /billing/account/withdraw:
+    post:
+      summary: Снять деньги со счета пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                amount:
+                  type: number
+              required:
+                - userId
+                - amount
+      responses:
+        '200':
+          description: Деньги списаны
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /billing/{userId}/balance:
+    get:
+      summary: Посмотреть баланс пользователя
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: Идентификатор пользователя
+      responses:
+        '200':
+          description: Баланс пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  balance:
+                    type: number
+
+  /notifications/{userId}/messages:
+    get:
+      summary: Получить список сообщений пользователя
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: Идентификатор пользователя
+      responses:
+        '200':
+          description: Список сообщений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    messageId:
+                      type: string
+                    messageText:
+                      type: string
+
+  /orders:
+    post:
+      summary: Создать заказ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                amount:
+                  type: string
+              required:
+                - userId
+                - amount
+      responses:
+        '200':
+          description: Заказ создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string

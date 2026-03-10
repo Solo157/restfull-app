@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: auth-kuber-service-space
+  name: {{ include "kuber-crud-app.name" . }}-config
+data:
+  DB_URL: "{{ .Values.database.url }}"
+  DB_SQL_INIT: "{{ .Values.database.initData }}"
+  DB_CLASS_NAME: "{{ .Values.database.className }}"

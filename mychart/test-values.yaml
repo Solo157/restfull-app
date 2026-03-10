@@ -1,0 +1,12 @@
+environment: test
+
+#service:
+#  authPort: 7070
+#  port: 8080
+
+database:
+  url: jdbc:h2:mem:testdb
+  user: sa
+  password: ""
+  initData: always
+  className: org.h2.Driver
