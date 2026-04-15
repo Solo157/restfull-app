@@ -22,7 +22,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()   // все запросы разрешены
+                        .anyRequest().permitAll()
                 );
         return http.build();
     }

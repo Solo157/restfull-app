@@ -1,16 +1,25 @@
+server:
+  port: 8090
+
+services:
+  external:
+    billing:
+      port: 8090
+
 spring:
   application:
     name: order-service
   rabbitmq:
-    host: localhost
-    port: 5672
-    persistent: true
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
 
   datasource:
-    url: jdbc:h2:mem:testdb
-    username: sa
-    password: ""
-    driver-class-name: org.h2.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_CLASS_NAME}
 
   jpa:
     hibernate:

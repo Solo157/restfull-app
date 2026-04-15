@@ -1,47 +1,55 @@
 package com.service.service;
 
-import com.service.adapter.OrderStatusEventDTO;
-import com.service.adapter.PaymentStatus;
-import com.service.adapter.RabbitAdapterService;
+import com.service.adapter.DistributedAdapterSender;
+import com.service.adapter.events.OrderCreatedEvent;
 import com.service.database.Account;
 import com.service.database.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+/**
+ * Главный сервис по работе с биллингом.
+ */
 @Service
 @RequiredArgsConstructor
 public class BillingAccountService {
 
-    private final RabbitAdapterService rabbitAdapterService;
+    private final DistributedAdapterSender distributedAdapterSender;
     private final AccountRepository accountRepository;
 
-    public boolean checkAccountAmount(String userId, String orderId, Long orderAmount) {
+    /**
+     * Проверка хватает ли средств на аккаунте для суммы ордера.
+     */
+    public boolean checkAccountAmount(String userId, Integer orderAmount) {
         Optional<Account> accountOpt = accountRepository.findByUserId(userId);
-        if (accountOpt.isEmpty()) {
-            rabbitAdapterService.sendOrderNoMoneyEvent(userId, orderId, orderAmount);
-            return false;
-        }
-        Account account = accountOpt.get();
-        Long accountAmount = account.getAmount();
-
-        if (orderAmount > accountAmount) {
-            rabbitAdapterService.sendOrderNoMoneyEvent(userId, orderId, orderAmount);
-            return false;
-        }
-
-        return true;
+        return accountOpt
+                .filter(account -> orderAmount <= account.getAmount())
+                .isPresent();
     }
 
+    public Account getAccount(String userId) {
+        Optional<Account> userAccountOpt = accountRepository.findByUserId(userId);
+        return userAccountOpt.orElse(null);
+    }
+
+    /**
+     * Создать аккаунт для пользователя.
+     */
     public void createAccount(String userId) {
         Account account = new Account();
         account.setUserId(userId);
-        account.setAmount(0L);
+        account.setAmount(0);
         accountRepository.save(account);
     }
 
-    public boolean depositAccount(String userId, Long amount) {
+    /**
+     * Положить деньги на аккаунт.
+     */
+    @Transactional
+    public boolean depositAccount(String userId, Integer amount) {
         Optional<Account> userAccountOpt = accountRepository.findByUserId(userId);
         if (userAccountOpt.isEmpty()) {
             return false;
@@ -53,39 +61,42 @@ public class BillingAccountService {
         return true;
     }
 
-    public boolean withdrawAccount(String userId, Long amount) {
+    /**
+     * Снять деньги с аккаунта.
+     */
+    @Transactional
+    public boolean withdrawAccount(String userId, Integer amount) {
         Optional<Account> userAccountOpt = accountRepository.findByUserId(userId);
         if (userAccountOpt.isEmpty()) {
             return false;
         }
         Account userAccount = userAccountOpt.get();
 
-        Long currentAmount = userAccount.getAmount();
-        if ((currentAmount - amount) < 0) {
+        Integer currentAmount = userAccount.getAmount();
+        int diffAmounts = currentAmount - amount;
+        if (diffAmounts < 0) {
             return false;
         }
 
-        userAccount.setAmount(currentAmount - amount);
+        userAccount.setAmount(diffAmounts);
+        System.out.println("withdrawAccount: " + userAccount);
         accountRepository.save(userAccount);
         return true;
     }
 
-    public void handleOrderStatusEvent(OrderStatusEventDTO event) {
-        PaymentStatus paymentStatus = event.getPaymentStatus();
-        if (paymentStatus == PaymentStatus.PENDING) {
-            paymentStatus = PaymentStatus.NOT_PAID;
-            boolean withdrawAccount = withdrawAccount(event.getUserId(), event.getAmount());
-            if (withdrawAccount) {
-                paymentStatus = PaymentStatus.PAID;
-            }
-            rabbitAdapterService.sendOrderPaymentStatusEvent(
-                    event.getUserId(),
-                    event.getOrderId(),
-                    event.getOrderStatus(),
-                    paymentStatus,
-                    event.getAmount()
-            );
+    /**
+     * Обработка приходящего ивента о том, что заказ создан. Нужно снять деньги с аккаунта за заказ.
+     */
+    public void handleOrderCreatedEvent(OrderCreatedEvent event) {
+        System.out.println("handleOrderStatusEvent: " + event);
+
+        boolean withdrawAccount = withdrawAccount(event.getUserId(), event.getAmount());
+        if (withdrawAccount) {
+            distributedAdapterSender.sendOrderPaymentSucceededEvent(event.getUserId(), event.getOrderId());
+            return;
         }
+
+        distributedAdapterSender.sendOrderPaymentNoMoneyEvent(event.getUserId(), event.getOrderId());
     }
 
 }

@@ -1,13 +1,12 @@
 openapi: 3.0.3
 info:
-  title: API
+  title: Auth API
   version: 1.0.0
-  description: API для управления пользователями, платежами, заказами и нотификациями
-
+  description: API для аутентификации и регистрации пользователей
 paths:
   /auth/register:
     post:
-      summary: Создать пользователя
+      summary: Создать нового пользователя
       requestBody:
         required: true
         content:
@@ -17,9 +16,7 @@ paths:
               properties:
                 username:
                   type: string
-                firstname:
-                  type: string
-                phone:
+                fullName:
                   type: string
                 email:
                   type: string
@@ -27,89 +24,12 @@ paths:
                   type: string
               required:
                 - username
-                - firstname
+                - fullName
                 - email
                 - password
       responses:
         '200':
-          description: Пользователь создан
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /billing/account/deposit:
-    post:
-      summary: Пополнить счет пользователя
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                userId:
-                  type: string
-                amount:
-                  type: number
-              required:
-                - userId
-                - amount
-      responses:
-        '200':
-          description: Баланс пополнен
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /billing/account/withdraw:
-    post:
-      summary: Снять деньги со счета пользователя
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                userId:
-                  type: string
-                amount:
-                  type: number
-              required:
-                - userId
-                - amount
-      responses:
-        '200':
-          description: Деньги списаны
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /billing/{userId}/balance:
-    get:
-      summary: Посмотреть баланс пользователя
-      parameters:
-        - in: path
-          name: userId
-          schema:
-            type: string
-          required: true
-          description: Идентификатор пользователя
-      responses:
-        '200':
-          description: Баланс пользователя
+          description: Пользователь успешно создан
           content:
             application/json:
               schema:
@@ -117,12 +37,86 @@ paths:
                 properties:
                   userId:
                     type: string
-                  balance:
-                    type: number
+        '400':
+          description: Ошибка при создании пользователя
 
-  /notifications/{userId}/messages:
+  /auth/login:
+    post:
+      summary: Войти в систему
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Токен авторизации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Неверные учетные данные
+  /api/billing/v1/account:
     get:
-      summary: Получить список сообщений пользователя
+      summary: Получить информацию о счете пользователя
+      parameters:
+        - in: query
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: Идентификатор пользователя
+      responses:
+        '200':
+          description: Информация о счете
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+  /api/billing/v1/account/deposit:
+    post:
+      summary: Пополнить счет пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountRequest'
+      responses:
+        '200':
+          description: Пополнение выполнено успешно
+        '304':
+          description: Пополнение не выполнено
+  /api/billing/v1/account/withdraw:
+    post:
+      summary: Снять средства со счета пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountRequest'
+      responses:
+        '200':
+          description: Снятие выполнено успешно
+        '304':
+          description: Снятие не выполнено
+  /api/notification/v1/notifications/{userId}/messages:
+    get:
+      summary: Получить все уведомления пользователя
       parameters:
         - in: path
           name: userId
@@ -132,43 +126,115 @@ paths:
           description: Идентификатор пользователя
       responses:
         '200':
-          description: Список сообщений
+          description: Список уведомлений пользователя
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    messageId:
-                      type: string
-                    messageText:
-                      type: string
-
-  /orders:
+                  $ref: '#/components/schemas/NotificationMessagesDTO'
+  /api/order/v1:
+    get:
+      summary: Получить заказы пользователя
+      parameters:
+        - in: query
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: Идентификатор пользователя
+      responses:
+        '200':
+          description: Список заказов пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderDTO'
     post:
-      summary: Создать заказ
+      summary: Создать новый заказ для пользователя
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                userId:
-                  type: string
-                amount:
-                  type: string
-              required:
-                - userId
-                - amount
+              $ref: '#/components/schemas/OrderDTO'
       responses:
         '200':
-          description: Заказ создан
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+          description: Заказ успешно создан
+        '402':
+          description: Заказ не создан, требуется оплата
+
+components:
+  schemas:
+    OrderDTO:
+      type: object
+      properties:
+        userId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemDTO'
+        deliveryAddress:
+          type: string
+        contactPhone:
+          type: string
+        orderDate:
+          type: string
+          format: date-time
+    OrderItemDTO:
+      type: object
+      properties:
+        productName:
+          type: string
+        price:
+          type: integer
+    NotificationMessagesDTO:
+      type: object
+      properties:
+        message:
+          type: string
+        orderId:
+          type: integer
+        amount:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        deliveryAddress:
+          type: string
+        contactPhone:
+          type: string
+        orderDate:
+          type: string
+          format: date-time
+
+    OrderItem:
+      type: object
+      properties:
+        productName:
+          type: string
+        price:
+          type: integer
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        amount:
+          type: integer
+    AccountRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+        amount:
+          type: integer
+      required:
+        - userId
+        - amount

@@ -25,7 +25,8 @@ public class User implements UserDetails {
     private String fullName;
 
     @PersistenceCreator
-    public User() {}
+    public User() {
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

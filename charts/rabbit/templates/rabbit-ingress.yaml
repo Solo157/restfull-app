@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbitmq-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: arch.homework
+      http:
+        paths:
+          - path: /rabbit
+            pathType: Prefix
+            backend:
+              service:
+                name: rabbitmq-service
+                port:
+                  number: 15672

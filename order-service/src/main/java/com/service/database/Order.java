@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.data.annotation.PersistenceCreator;
 
+import java.util.*;
+
 @Entity
 @Table(name = "orders")
 @Data
@@ -14,12 +16,24 @@ public class Order {
     private Long id;
 
     private String userId;
-    private Long amount;
+    private Integer amount;
+
+    /**
+     * Товары заказа.
+     */
+    @ElementCollection
+    @CollectionTable(name = "order_items", joinColumns = @JoinColumn(name = "order_id"))
+    private List<OrderItem> items;
 
     private OrderStatus orderStatus;
     private PaymentStatus paymentStatus;
 
+    private String deliveryAddress;
+    private String contactPhone;
+    private String orderDate;
+
     @PersistenceCreator
-    public Order() {}
+    public Order() {
+    }
 
 }

@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+/**
+ * Сервис, использующийся в Spring Security для поиска пользователя в БД.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserManagerService implements UserDetailsService {

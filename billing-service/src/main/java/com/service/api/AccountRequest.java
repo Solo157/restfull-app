@@ -6,6 +6,6 @@ import lombok.Data;
 public class AccountRequest {
 
     private String userId;
-    private Long amount;
+    private Integer amount;
 
 }

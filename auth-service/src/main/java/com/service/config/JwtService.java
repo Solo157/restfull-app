@@ -11,12 +11,21 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+/**
+ * Сервис для работы с токеном.
+ */
 @Service
 public class JwtService {
 
+    /**
+     * Секрет для подписи токена.
+     */
     private static final String SECRET = "mysupersecretkeymysupersecretkey123456";
     private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
+    /**
+     * Сгенерировать токен по имени пользователя.
+     */
     public String generateToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
@@ -25,6 +34,9 @@ public class JwtService {
                 .compact();
     }
 
+    /**
+     * Проверка токена на валидность. Проверяентся, что токен еще не истек к текущему времени.
+     */
     public boolean isValid(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
@@ -33,20 +45,22 @@ public class JwtService {
                     .parseClaimsJws(token)
                     .getBody();
 
-            // например, проверим, что токен не истёк
             return claims.getExpiration().after(new Date());
         } catch (Exception e) {
             return false;
         }
     }
 
+    /**
+     * Извлечь имя пользователя из токена.
+     */
     public String extractUsername(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(Keys.hmacShaKeyFor(SECRET.getBytes()))
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .getSubject();  // <-- тут username
+                .getSubject();
     }
 
 }

@@ -1,3 +1,5 @@
 package com.service.api;
 
-public record LoginRequest(String username, String password) {}
+public record LoginRequest(String username, String password) {
+
+}

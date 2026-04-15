@@ -1,12 +1,20 @@
+server:
+  port: 8090
+
 spring:
   application:
     name: billing-service
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
 
   datasource:
-    url: jdbc:h2:mem:testdb
-    username: sa
-    password: ""
-    driver-class-name: org.h2.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_CLASS_NAME}
 
   jpa:
     hibernate:

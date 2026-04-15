@@ -1,0 +1,8 @@
+environment: test
+
+database:
+  url: jdbc:h2:mem:testdb
+  username: sa
+  password: ""
+  initData: always
+  className: org.h2.Driver

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: auth-kuber-service-space
+  name: env-service-config
+data:
+  DB_URL: "{{ .Values.database.url }}"
+  DB_INIT_DATA: "{{ .Values.database.initData }}"
+  DB_CLASS_NAME: "{{ .Values.database.className }}"
+  RABBITMQ_HOST: "{{ .Values.rabbitmq.host }}"
+  RABBITMQ_PORT: "{{ .Values.rabbitmq.port }}"
+  RABBITMQ_USERNAME: "{{ .Values.rabbitmq.username }}"
+  RABBITMQ_PASSWORD: "{{ .Values.rabbitmq.password }}"
