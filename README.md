@@ -48,7 +48,8 @@ Order сервис проверяет, хватит ли средств на с�
 docker миникуба:
    docker pull registry.k8s.io/ingress-nginx/controller:v1.15.1@sha256:594ceea76b01c592858f803f9ff4d2cb40542cae2060410b2c95f75907d659e1
    minikube image load registry.k8s.io/ingress-nginx/controller:v1.15.1
-5. Создаем/поднимаем все сервисы:
+5. С помощью команды kubectl get pods -n auth-kuber-service-space удостоверяемся, что ingress стал READY.
+6. Создаем/поднимаем все сервисы:
    helm upgrade --install auth-service ./charts/auth -n auth-kuber-service-space && \
    helm upgrade --install billing-service ./charts/billing -n auth-kuber-service-space && \
    helm upgrade --install notification-service ./charts/notification -n auth-kuber-service-space && \

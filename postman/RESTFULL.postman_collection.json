@@ -411,10 +411,8 @@
 							"   pm.response.to.have.status(200);",
 							"   const jsonData = pm.response.json();",
 							"",
-							"   // Проверка, что ответ — массив",
 							"   pm.expect(jsonData).to.be.an('array');",
 							"",
-							"   // Или более точная проверка наличия конкретного объекта",
 							"   pm.expect(jsonData.some(item => item.message === \"Order is paid and completed.\")).to.be.true;",
 							"});"
 						],
@@ -581,10 +579,8 @@
 							"   pm.response.to.have.status(200);",
 							"   const jsonData = pm.response.json();",
 							"",
-							"   // Проверка, что ответ — массив",
 							"   pm.expect(jsonData).to.be.an('array');",
 							"",
-							"   // Или более точная проверка наличия конкретного объекта",
 							"   pm.expect(jsonData.some(item => item.message === \"Order is paid and completed.\")).to.be.true;",
 							"   pm.expect(jsonData.some(item => item.message === \"Order is cancelled because account not enough money.\")).to.be.true;",
 							"});"
