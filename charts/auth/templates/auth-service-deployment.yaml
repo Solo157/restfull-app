@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: auth-kuber-service-space
+  name: {{ include "auth-service.name" . }}-dp
+  labels:
+    app: {{ include "auth-service.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "auth-service.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "auth-service.name" . }}
+      annotations:
+        redeploy-timestamp: "{{ now | unixEpoch }}"
+    spec:
+      containers:
+        - name: {{ include "auth-service.name" . }}
+          image: "{{ .Values.image.authRepository }}:{{ .Values.image.tag }}"
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: DB_PASSWORD
+            - name: DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: env-service-config
+                  key: DB_URL
+            - name: DB_INIT_DATA
+              valueFrom:
+                configMapKeyRef:
+                  name: env-service-config
+                  key: DB_INIT_DATA
+            - name: DB_CLASS_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: env-service-config
+                  key: DB_CLASS_NAME
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.authContainerPort }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.app.authHealthPath }}
+              port: {{ .Values.app.authContainerPort }}
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.app.authHealthPath }}
+              port: {{ .Values.app.authContainerPort }}
+            initialDelaySeconds: 20
+            periodSeconds: 5

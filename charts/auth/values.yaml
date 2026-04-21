@@ -1,0 +1,15 @@
+replicaCount: 1
+
+service:
+  port: 8090
+  targetPort: 8090
+  type: ClusterIP
+
+image:
+  authRepository: ghcr.io/solo157/restfull-auth
+  tag: latest
+  pullPolicy: Always
+
+app:
+  authContainerPort: 8090
+  authHealthPath: /auth/health

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: rabbit
+description: Helm chart for rabbit
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

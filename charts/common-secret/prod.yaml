@@ -1,0 +1,8 @@
+environment: prod
+
+database:
+  url: jdbc:h2:mem:testdb # БД прода, заменять на боевую
+  username: sa
+  password: ""
+  initData: always # на проде нет инициализированных данных
+  className: org.h2.Driver # БД прода, заменять на боевую

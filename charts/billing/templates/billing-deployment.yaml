@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: auth-kuber-service-space
+  name: {{ include "billing-service.name" . }}-dp
+  labels:
+    app: {{ include "billing-service.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "billing-service.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "billing-service.name" . }}
+      annotations:
+        redeploy-timestamp: "{{ now | unixEpoch }}"
+    spec:
+      initContainers:
+        - name: wait-for-rabbitmq
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z -v -w30 rabbitmq-service 5672; do
+                echo "Waiting for RabbitMQ..."
+                sleep 5
+              done
+      containers:
+        - name: {{ include "billing-service.name" . }}
+          image: "{{ .Values.image.billingRepository }}:{{ .Values.image.tag }}"
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: DB_PASSWORD
+            - name: DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: env-service-config
+                  key: DB_URL
+            - name: DB_INIT_DATA
+              valueFrom:
+                configMapKeyRef:
+                  name: env-service-config
+                  key: DB_INIT_DATA
+            - name: DB_CLASS_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: env-service-config
+                  key: DB_CLASS_NAME
+            - name: RABBITMQ_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: env-service-config
+                  key: RABBITMQ_HOST
+            - name: RABBITMQ_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: env-service-config
+                  key: RABBITMQ_PORT
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: env-service-config
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: env-service-config
+                  key: RABBITMQ_PASSWORD
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.billingContainerPort }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.app.billingHealthPath }}
+              port: {{ .Values.app.billingContainerPort }}
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.app.billingHealthPath }}
+              port: {{ .Values.app.billingContainerPort }}
+            initialDelaySeconds: 20
+            periodSeconds: 5

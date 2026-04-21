@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: authorization-crud-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/auth-url: "http://auth-service-service.auth-kuber-service-space.svc.cluster.local:8090/auth/validate"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: arch.homework
+      http:
+        paths:
+          - path: /api/billing/
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "billing-service.name" . }}-service
+                port:
+                  number: 8090
+          - path: /api/notification/
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "notification-service.name" . }}-service
+                port:
+                  number: 8090
+          - path: /api/order/
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "order-service.name" . }}-service
+                port:
+                  number: 8090

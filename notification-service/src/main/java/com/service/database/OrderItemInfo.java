@@ -1,0 +1,30 @@
+package com.service.database;
+
+import jakarta.persistence.Embeddable;
+import lombok.Data;
+
+/**
+ * Информация о пункте заказа.
+ */
+@Data
+@Embeddable
+public class OrderItemInfo {
+
+    /**
+     * Название пункта меню.
+     */
+    private String productName;
+    /**
+     * Стоимость за 1 единицу.
+     */
+    private Integer price;
+
+    public OrderItemInfo() {
+    }
+
+    public OrderItemInfo(String productName, Integer price) {
+        this.productName = productName;
+        this.price = price;
+    }
+
+}
