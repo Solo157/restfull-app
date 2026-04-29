@@ -99,4 +99,17 @@ public class BillingAccountService {
         distributedAdapterSender.sendOrderPaymentNoMoneyEvent(event.getUserId(), event.getOrderId());
     }
 
+    /**
+     * Обработка приходящего ивента о том, что заказ создан. Нужно снять деньги с аккаунта за заказ.
+     */
+    public void releaseUserMoney(String userId, Integer amount) {
+        System.out.println("releaseUserMoney: " + event);
+
+        depositAccount(userId, amount);
+
+        distributedAdapterSender.sendOrderPaymentSucceededEvent(event.getUserId(), event.getOrderId());
+
+        distributedAdapterSender.sendOrderPaymentNoMoneyEvent(event.getUserId(), event.getOrderId());
+    }
+
 }

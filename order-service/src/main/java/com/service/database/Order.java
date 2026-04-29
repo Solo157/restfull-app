@@ -26,7 +26,7 @@ public class Order {
     private List<OrderItem> items;
 
     private OrderStatus orderStatus;
-    private PaymentStatus paymentStatus;
+    private String statusMessage;
 
     private String deliveryAddress;
     private String contactPhone;

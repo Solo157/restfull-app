@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: order-service
+    name: inventory-service
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT}

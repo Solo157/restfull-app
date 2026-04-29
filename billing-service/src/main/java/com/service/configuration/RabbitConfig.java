@@ -22,9 +22,9 @@ public class RabbitConfig {
     public static final String PAYMENT_SUCCEEDED_KEY = "payment.succeeded";
 
     /**
-     * Ключ к которому привязывается очередь по обработке ивента о создании заказа.
+     * Ключ для отправки команды списания средств со счета пользователя по заказу.
      */
-    public static final String ORDER_CREATED_KEY = "order.created";
+    public static final String RESERVE_PAYMENT_COMMAND_KEY = "reserve.payment.command";
 
     /**
      * Очередь, которая обрабатывает ивент о создании заказа.
