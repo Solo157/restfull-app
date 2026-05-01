@@ -1,8 +1,8 @@
-package com.service.saga.command;
+package com.service.adapter.commands;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.service.api.dto.OrderItemDTO;
+import com.service.adapter.OrderItemDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

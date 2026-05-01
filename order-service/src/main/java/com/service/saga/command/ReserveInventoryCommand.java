@@ -2,6 +2,8 @@ package com.service.saga.command;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.service.api.dto.OrderItemDTO;
+import com.service.database.OrderItem;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,19 +16,19 @@ public class ReserveInventoryCommand {
     private UUID sagaId;
     private Long orderId;
     private String userId;
-    private Integer amount;
+    private List<OrderItemDTO> items;
     private String keyIdempotence;
 
     @JsonCreator
     public ReserveInventoryCommand(@JsonProperty("sagaId") UUID sagaId,
                                    @JsonProperty("orderId") Long orderId,
                                    @JsonProperty("userId") String userId,
-                                   @JsonProperty("amount") Integer amount,
+                                   @JsonProperty("items") List<OrderItemDTO> items,
                                    @JsonProperty("keyIdempotence") String keyIdempotence) {
         this.sagaId = sagaId;
         this.orderId = orderId;
         this.userId = userId;
-        this.amount = amount;
+        this.items = items;
         this.keyIdempotence = keyIdempotence;
     }
 

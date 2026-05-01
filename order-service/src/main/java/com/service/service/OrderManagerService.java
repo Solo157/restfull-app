@@ -76,9 +76,9 @@ public class OrderManagerService {
         Optional<Order> orderOpt = orderRepository.findById(orderId);
         orderOpt.ifPresent(order -> {
             order.setOrderStatus(status);
-            order.setStatusMessage(statusMessage);
+//            order.setStatusMessage(statusMessage);
             orderRepository.save(order);
-            notificationServiceProxy.sendOrderCompletedEvent(order);
+            notificationServiceProxy.sendOrderCompletedEvent(order, statusMessage);
         });
     }
 

@@ -2,14 +2,12 @@ package com.service.adapters;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.service.adapters.events.OrderCreatedEvent;
 import com.service.adapters.events.OrderNotificationEvent;
 import com.service.database.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
-import static com.service.config.RabbitConfig.ORDER_CANCELLED_NO_MONEY_KEY;
 import static com.service.config.RabbitConfig.ORDER_COMPLETED_KEY;
 import static com.service.config.RabbitConfig.ORDER_EVENTS_TOPIC_EXCHANGE;
 
@@ -46,7 +44,7 @@ public class NotificationServiceProxy {
     /**
      * Отправить ивент в сервис нотификаций о том, что заказ оплачен и завершен.
      */
-    public void sendOrderCompletedEvent(Order order) {
+    public void sendOrderCompletedEvent(Order order, String statusMessage) {
         try {
             String payload = objectMapper.writeValueAsString(
                     new OrderNotificationEvent(order.getUserId(),

@@ -1,4 +1,4 @@
-package com.service.api.dto;
+package com.service.adapter;
 
 import lombok.Data;
 

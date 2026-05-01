@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
-import static com.service.config.RabbitConfig.COMPENSATION_RELEASE_PAYMENT_COMMAND_KEY;
+import static com.service.config.RabbitConfig.RELEASE_PAYMENT_COMMAND_KEY;
 import static com.service.config.RabbitConfig.RESERVE_PAYMENT_COMMAND_KEY;
 import static com.service.config.RabbitConfig.ORDER_EVENTS_TOPIC_EXCHANGE;
 
@@ -55,7 +55,7 @@ public class BillingServiceProxy {
         try {
             String payload = objectMapper.writeValueAsString(command);
 
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, COMPENSATION_RELEASE_PAYMENT_COMMAND_KEY, payload);
+            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, RELEASE_PAYMENT_COMMAND_KEY, payload);
             System.out.println("Message sent");
         } catch (Exception e) {
             e.printStackTrace();

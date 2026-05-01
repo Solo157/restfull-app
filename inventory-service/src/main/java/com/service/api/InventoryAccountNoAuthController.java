@@ -1,6 +1,6 @@
 package com.service.api;
 
-import com.service.service.BillingAccountService;
+import com.service.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,23 +15,13 @@ import java.util.*;
 @RestController
 @RequestMapping("/billing")
 @RequiredArgsConstructor
-public class BillingAccountNoAuthController {
+public class InventoryAccountNoAuthController {
 
-    private final BillingAccountService accountService;
+    private final InventoryService accountService;
 
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("status", "OK"));
-    }
-
-    /**
-     * Создать аккаунт пользователя.
-     */
-    @PostMapping("/account")
-    public ResponseEntity<String> createAccount(@RequestParam(value = "userId") String userId) {
-        System.out.println("createAccount: userId = " + userId);
-        accountService.createAccount(userId);
-        return ResponseEntity.status(HttpStatus.OK).body("Account registered successfully");
     }
 
 }

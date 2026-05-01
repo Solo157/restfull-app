@@ -1,4 +1,4 @@
-package com.service.saga.event;
+package com.service.adapter.events;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,22 +9,22 @@ import java.util.*;
 
 @Data
 @NoArgsConstructor
-public class PaymentReservedEvent {
+public class PaymentReleasedEvent {
 
     private UUID sagaId;
     private Long orderId;
     private boolean success;
-    private String message;
+    private String errorMessage;
 
     @JsonCreator
-    public PaymentReservedEvent(@JsonProperty("sagaId") UUID sagaId,
+    public PaymentReleasedEvent(@JsonProperty("sagaId") UUID sagaId,
                                 @JsonProperty("orderId") Long orderId,
                                 @JsonProperty("success") boolean success,
-                                @JsonProperty("message") String message) {
+                                @JsonProperty("errorMessage") String errorMessage) {
         this.sagaId = sagaId;
         this.orderId = orderId;
         this.success = success;
-        this.message = message;
+        this.errorMessage = errorMessage;
     }
 
 }

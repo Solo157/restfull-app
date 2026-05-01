@@ -30,10 +30,10 @@ public class SagaCoordinator {
                 sagaId,
                 orderId,
                 userId,
-                amount,
                 SagaStatus.STARTED,
                 SagaStep.PAYMENT,
                 new LinkedList<>(),
+                "",
                 new Date(),
                 new Date()
         );
@@ -78,26 +78,34 @@ public class SagaCoordinator {
     }
 
     @Transactional
-    public void completeFailedSaga(Long orderId, String errorMessage) {
-        orderManagerService.cancelOrder(orderId, errorMessage);
+    public void completeFailedSaga(UUID sagaId) {
+        OrderSagaState state = sagaStateRepository.findBySagaId(sagaId)
+                .orElseThrow(() -> new RuntimeException("Saga not found: " + sagaId));
+
+        orderManagerService.cancelOrder(state.getOrderId(), state.getErrorMessage());
     }
 
     /**
      * Компенсация при ошибке.
      */
     @Transactional
-    public void compensateSaga(UUID sagaId) {
+    public void compensateSaga(UUID sagaId, String errorMessage) {
         OrderSagaState state = sagaStateRepository.findBySagaId(sagaId)
                 .orElseThrow(() -> new RuntimeException("Saga not found: " + sagaId));
 
         state.setSagaStatus(SagaStatus.FAILED);
         state.setCurrentStep(SagaStep.COMPENSATING);
+        state.setErrorMessage(errorMessage);
         state.setUpdatedAt(new Date());
         sagaStateRepository.save(state);
 
         // Проходим по завершенным шагам в обратном порядке
         List<SagaStep> stepsToCompensate = new ArrayList<>(state.getCompletedSteps());
         Collections.reverse(stepsToCompensate);
+
+        if (stepsToCompensate.isEmpty()) {
+            completeFailedSaga(sagaId);
+        }
 
         sendCompensationCommand(state, stepsToCompensate.getFirst());
     }

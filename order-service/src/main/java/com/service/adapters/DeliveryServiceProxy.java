@@ -52,7 +52,7 @@ public class DeliveryServiceProxy {
         try {
             String payload = objectMapper.writeValueAsString(command);
 
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, COMPENSATION_RELEASE_DELIVERY_COMMAND_KEY, payload);
+            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, RELEASE_DELIVERY_COMMAND_KEY, payload);
             System.out.println("Message sent");
         } catch (Exception e) {
             e.printStackTrace();

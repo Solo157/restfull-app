@@ -17,25 +17,25 @@ public class RabbitConfig {
     public static final String PAYMENT_RESERVED_EVENT_KEY = "payment.reserved.event"; // используется биллингом для отправки
     public static final String PAYMENT_RESERVED_COMMAND_QUEUE = "payment.reserved.command.queue"; // очередь что успешно сняли средства по заказу
 
-    public static final String COMPENSATION_RELEASE_PAYMENT_COMMAND_KEY = "compensation.release.payment.command"; // для отправки команды в биллинг
-    public static final String COMPENSATION_PAYMENT_RELEASED_EVENT_KEY = "compensation.payment.released.event"; // используется биллингом для отправки
-    public static final String COMPENSATION_PAYMENT_RELEASED_COMMAND_QUEUE = "compensation.payment.released.command.queue"; // очередь что не сняли средства по заказу
+    public static final String RELEASE_PAYMENT_COMMAND_KEY = "release.payment.command"; // для отправки команды в биллинг
+    public static final String PAYMENT_RELEASED_EVENT_KEY = "payment.released.event"; // используется биллингом для отправки
+    public static final String PAYMENT_RELEASED_COMMAND_QUEUE = "payment.released.command.queue"; // очередь что не сняли средства по заказу
 
     public static final String RESERVE_DELIVERY_COMMAND_KEY = "reserve.delivery.command";
     public static final String DELIVERY_RESERVED_EVENT_KEY = "delivery.reserved.event";
     public static final String DELIVERY_RESERVED_COMMAND_QUEUE = "delivery.reserved.command.queue";
 
-    public static final String COMPENSATION_RELEASE_DELIVERY_COMMAND_KEY = "compensation.release.delivery.command";
-    public static final String COMPENSATION_DELIVERY_RELEASED_EVENT_KEY = "compensation.delivery.released.event";
-    public static final String COMPENSATION_DELIVERY_RELEASED_COMMAND_QUEUE = "compensation.delivery.released.command.queue";
+    public static final String RELEASE_DELIVERY_COMMAND_KEY = "release.delivery.command";
+    public static final String DELIVERY_RELEASED_EVENT_KEY = "delivery.released.event";
+    public static final String DELIVERY_RELEASED_COMMAND_QUEUE = "delivery.released.command.queue";
 
     public static final String RESERVE_INVENTORY_COMMAND_KEY = "reserve.inventory.command";
     public static final String INVENTORY_RESERVED_EVENT_KEY = "inventory.reserved.event";
     public static final String INVENTORY_RESERVED_QUEUE = "inventory.reserved.command.queue";
 
-    public static final String RELEASE_INVENTORY_COMMAND_KEY = "compensation.release.inventory.command";
-    public static final String INVENTORY_RELEASED_EVENT_KEY = "compensation.inventory.released.event";
-    public static final String COMPENSATION_INVENTORY_RELEASED_COMMAND_QUEUE = "compensation.inventory.released.command.queue";
+    public static final String RELEASE_INVENTORY_COMMAND_KEY = "release.inventory.command";
+    public static final String INVENTORY_RELEASED_EVENT_KEY = "inventory.released.event";
+    public static final String INVENTORY_RELEASED_COMMAND_QUEUE = "inventory.released.command.queue";
 
     @Bean
     public TopicExchange topicExchange() {
@@ -49,7 +49,7 @@ public class RabbitConfig {
 
     @Bean
     public Queue paymentReleasedQueue() {
-        return new Queue(COMPENSATION_PAYMENT_RELEASED_COMMAND_QUEUE, true, false, false);
+        return new Queue(PAYMENT_RELEASED_COMMAND_QUEUE, true, false, false);
     }
 
     @Bean
@@ -59,7 +59,7 @@ public class RabbitConfig {
 
     @Bean
     public Queue inventoryReleasedQueue() {
-        return new Queue(COMPENSATION_INVENTORY_RELEASED_COMMAND_QUEUE, true, false, false);
+        return new Queue(INVENTORY_RELEASED_COMMAND_QUEUE, true, false, false);
     }
 
     @Bean
@@ -69,7 +69,7 @@ public class RabbitConfig {
 
     @Bean
     public Queue deliveryReleasedQueue() {
-        return new Queue(COMPENSATION_DELIVERY_RELEASED_COMMAND_QUEUE, true, false, false);
+        return new Queue(DELIVERY_RELEASED_COMMAND_QUEUE, true, false, false);
     }
 
     @Bean
@@ -83,7 +83,7 @@ public class RabbitConfig {
     public Binding bindPaymentReleasedQueueToExchange(Queue paymentReleasedQueue, TopicExchange topicExchange) {
         return BindingBuilder.bind(paymentReleasedQueue)
                 .to(topicExchange)
-                .with(COMPENSATION_PAYMENT_RELEASED_EVENT_KEY);
+                .with(PAYMENT_RELEASED_EVENT_KEY);
     }
 
     @Bean
@@ -111,7 +111,7 @@ public class RabbitConfig {
     public Binding bindDeliveryReleasedQueueToExchange(Queue deliveryReleasedQueue, TopicExchange topicExchange) {
         return BindingBuilder.bind(deliveryReleasedQueue)
                 .to(topicExchange)
-                .with(COMPENSATION_DELIVERY_RELEASED_EVENT_KEY);
+                .with(DELIVERY_RELEASED_EVENT_KEY);
     }
 
 }

@@ -1,7 +1,6 @@
 package com.service.service;
 
-import com.service.adapter.DistributedAdapterSender;
-import com.service.adapter.events.OrderCreatedEvent;
+import com.service.adapter.OrderServiceProxy;
 import com.service.database.Account;
 import com.service.database.AccountRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,18 +16,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class BillingAccountService {
 
-    private final DistributedAdapterSender distributedAdapterSender;
     private final AccountRepository accountRepository;
-
-    /**
-     * Проверка хватает ли средств на аккаунте для суммы ордера.
-     */
-    public boolean checkAccountAmount(String userId, Integer orderAmount) {
-        Optional<Account> accountOpt = accountRepository.findByUserId(userId);
-        return accountOpt
-                .filter(account -> orderAmount <= account.getAmount())
-                .isPresent();
-    }
 
     public Account getAccount(String userId) {
         Optional<Account> userAccountOpt = accountRepository.findByUserId(userId);
@@ -82,34 +70,6 @@ public class BillingAccountService {
         System.out.println("withdrawAccount: " + userAccount);
         accountRepository.save(userAccount);
         return true;
-    }
-
-    /**
-     * Обработка приходящего ивента о том, что заказ создан. Нужно снять деньги с аккаунта за заказ.
-     */
-    public void handleOrderCreatedEvent(OrderCreatedEvent event) {
-        System.out.println("handleOrderStatusEvent: " + event);
-
-        boolean withdrawAccount = withdrawAccount(event.getUserId(), event.getAmount());
-        if (withdrawAccount) {
-            distributedAdapterSender.sendOrderPaymentSucceededEvent(event.getUserId(), event.getOrderId());
-            return;
-        }
-
-        distributedAdapterSender.sendOrderPaymentNoMoneyEvent(event.getUserId(), event.getOrderId());
-    }
-
-    /**
-     * Обработка приходящего ивента о том, что заказ создан. Нужно снять деньги с аккаунта за заказ.
-     */
-    public void releaseUserMoney(String userId, Integer amount) {
-        System.out.println("releaseUserMoney: " + event);
-
-        depositAccount(userId, amount);
-
-        distributedAdapterSender.sendOrderPaymentSucceededEvent(event.getUserId(), event.getOrderId());
-
-        distributedAdapterSender.sendOrderPaymentNoMoneyEvent(event.getUserId(), event.getOrderId());
     }
 
 }

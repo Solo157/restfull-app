@@ -15,28 +15,28 @@ public class SagaEventHandlers {
     @RabbitListener(queues = RabbitConfig.PAYMENT_RESERVED_COMMAND_QUEUE)
     public void handlePaymentReserved(PaymentReservedEvent event) {
         if (!event.isSuccess()) {
-            sagaCoordinator.compensateSaga(event.getSagaId());
+            sagaCoordinator.compensateSaga(event.getSagaId(), event.getMessage());
             return;
         }
 
         sagaCoordinator.advanceToNextStep(event.getSagaId());
     }
 
-    @RabbitListener(queues = RabbitConfig.COMPENSATION_PAYMENT_RELEASED_COMMAND_QUEUE)
+    @RabbitListener(queues = RabbitConfig.PAYMENT_RELEASED_COMMAND_QUEUE)
     public void handlePaymentReserved(PaymentReleasedEvent event) {
-        sagaCoordinator.completeFailedSaga(event.getOrderId(), event.getErrorMessage());
+        sagaCoordinator.completeFailedSaga(event.getSagaId());
     }
 
     @RabbitListener(queues = RabbitConfig.INVENTORY_RESERVED_QUEUE)
     public void handleInventoryReserved(InventoryReservedEvent event) {
         if (!event.isSuccess()) {
-            sagaCoordinator.compensateSaga(event.getSagaId());
+            sagaCoordinator.compensateSaga(event.getSagaId(), event.getMessage());
             return;
         }
         sagaCoordinator.advanceToNextStep(event.getSagaId());
     }
 
-    @RabbitListener(queues = RabbitConfig.COMPENSATION_INVENTORY_RELEASED_COMMAND_QUEUE)
+    @RabbitListener(queues = RabbitConfig.INVENTORY_RELEASED_COMMAND_QUEUE)
     public void handleInventoryReserved(InventoryReleasedEvent event) {
         sagaCoordinator.sendCompensationCommand(event.getSagaId(), SagaStep.PAYMENT);
     }
@@ -44,13 +44,13 @@ public class SagaEventHandlers {
     @RabbitListener(queues = RabbitConfig.DELIVERY_RESERVED_COMMAND_QUEUE)
     public void handleDeliveryReserved(DeliveryReservedEvent event) {
         if (!event.isSuccess()) {
-            sagaCoordinator.compensateSaga(event.getSagaId());
+            sagaCoordinator.compensateSaga(event.getSagaId(), event.getMessage());
             return;
         }
         sagaCoordinator.advanceToNextStep(event.getSagaId());
     }
 
-    @RabbitListener(queues = RabbitConfig.COMPENSATION_DELIVERY_RELEASED_COMMAND_QUEUE)
+    @RabbitListener(queues = RabbitConfig.DELIVERY_RELEASED_COMMAND_QUEUE)
     public void handleDeliveryReserved(DeliveryReleasedEvent event) {
         sagaCoordinator.sendCompensationCommand(event.getSagaId(), SagaStep.INVENTORY);
     }

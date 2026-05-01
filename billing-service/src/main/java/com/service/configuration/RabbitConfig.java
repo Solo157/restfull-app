@@ -12,24 +12,13 @@ public class RabbitConfig {
      */
     public static final String ORDER_EVENTS_TOPIC_EXCHANGE = "order.events";
 
-    /**
-     * Ключ для отправки всем подписчикам что нет денег для оплаты заказа.
-     */
-    public static final String PAYMENT_NO_MONEY_KEY = "payment.no_money";
-    /**
-     * Ключ для отправки всем подписчикам что заказ успешно оплачен и деньги списались.
-     */
-    public static final String PAYMENT_SUCCEEDED_KEY = "payment.succeeded";
+    public static final String RESERVE_PAYMENT_COMMAND_KEY = "reserve.payment.command"; // ключ для привязки очереди по обработке снятия средств
+    public static final String PAYMENT_RESERVED_EVENT_KEY = "payment.reserved.event"; // ключ для отправки ивента, что средства списаны
+    public static final String BILLING_RESERVE_PAYMENT_COMMAND_QUEUE = "billing.reserve.payment.command.queue"; // очередь по обработке снятия средств
 
-    /**
-     * Ключ для отправки команды списания средств со счета пользователя по заказу.
-     */
-    public static final String RESERVE_PAYMENT_COMMAND_KEY = "reserve.payment.command";
-
-    /**
-     * Очередь, которая обрабатывает ивент о создании заказа.
-     */
-    public static final String BILLING_ORDER_CREATED_QUEUE = "billing.order.created";
+    public static final String RELEASE_PAYMENT_COMMAND_KEY = "release.payment.command"; // ключ для привязки очереди по обработке начисления средств
+    public static final String PAYMENT_RELEASED_EVENT_KEY = "payment.released.event"; // ключ для отправки ивента, что средства начислены
+    public static final String BILLING_RELEASE_PAYMENT_COMMAND_QUEUE = "billing.release.payment.command.queue"; // очередь по обработке начисления средств
 
     @Bean
     public TopicExchange topicExchange() {
@@ -37,18 +26,33 @@ public class RabbitConfig {
     }
 
     @Bean
-    public Queue billingOrderCreatedQueue() {
-        return new Queue(BILLING_ORDER_CREATED_QUEUE, true, false, false);
+    public Queue billingReservePaymentCommandQueue() {
+        return new Queue(BILLING_RESERVE_PAYMENT_COMMAND_QUEUE, true, false, false);
+    }
+
+    @Bean
+    public Queue billingReleasePaymentCommandQueue() {
+        return new Queue(BILLING_RELEASE_PAYMENT_COMMAND_QUEUE, true, false, false);
     }
 
     /**
      * Привязка очереди в биллинг-сервисе на ключ по созданию ордера.
      */
     @Bean
-    public Binding bindBillingOrderCreatedQueueToExchange(Queue billingOrderCreatedQueue, TopicExchange topicExchange) {
-        return BindingBuilder.bind(billingOrderCreatedQueue)
+    public Binding bindBillingReservePaymentCommandQueueToExchange(Queue billingReservePaymentCommandQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(billingReservePaymentCommandQueue)
                 .to(topicExchange)
-                .with(ORDER_CREATED_KEY);
+                .with(RESERVE_PAYMENT_COMMAND_KEY);
+    }
+
+    /**
+     * Привязка очереди в биллинг-сервисе на ключ по созданию ордера.
+     */
+    @Bean
+    public Binding bindBillingReleasePaymentCommandQueuerToExchange(Queue billingReleasePaymentCommandQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(billingReleasePaymentCommandQueue)
+                .to(topicExchange)
+                .with(RELEASE_PAYMENT_COMMAND_KEY);
     }
 
 }

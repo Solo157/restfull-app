@@ -1,8 +1,8 @@
-package com.service.saga.command;
+package com.service.adapter.commands;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.service.api.dto.OrderItemDTO;
+import com.service.adapter.OrderItemDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +10,7 @@ import java.util.*;
 
 @Data
 @NoArgsConstructor
-public class ReleaseInventoryCommand {
+public class ReserveInventoryCommand {
 
     private UUID sagaId;
     private Long orderId;
@@ -19,7 +19,7 @@ public class ReleaseInventoryCommand {
     private String keyIdempotence;
 
     @JsonCreator
-    public ReleaseInventoryCommand(@JsonProperty("sagaId") UUID sagaId,
+    public ReserveInventoryCommand(@JsonProperty("sagaId") UUID sagaId,
                                    @JsonProperty("orderId") Long orderId,
                                    @JsonProperty("userId") String userId,
                                    @JsonProperty("items") List<OrderItemDTO> items,

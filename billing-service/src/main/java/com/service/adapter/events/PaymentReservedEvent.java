@@ -1,4 +1,4 @@
-package com.service.saga.event;
+package com.service.adapter.events;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

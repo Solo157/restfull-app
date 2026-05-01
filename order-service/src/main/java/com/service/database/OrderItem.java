@@ -8,13 +8,17 @@ import lombok.Data;
 public class OrderItem {
 
     /**
-     * Название пункта меню.
+     * Название пункта заказа.
      */
     private String productName;
     /**
      * Стоимость за 1 единицу.
      */
     private Integer price;
+    /**
+     * Количество.
+     */
+    private Integer count;
 
     public OrderItem() {
     }

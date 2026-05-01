@@ -1,13 +1,18 @@
 package com.service.adapters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.service.api.dto.OrderDTO;
+import com.service.database.Order;
+import com.service.database.OrderRepository;
 import com.service.saga.KeyIdempotence;
 import com.service.saga.OrderSagaState;
-import com.service.saga.command.ReleasePaymentCommand;
-import com.service.saga.command.ReservePaymentCommand;
+import com.service.saga.command.*;
+import com.service.service.OrderManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 import static com.service.config.RabbitConfig.*;
 
@@ -16,17 +21,26 @@ import static com.service.config.RabbitConfig.*;
 public class InventoryServiceProxy {
 
     private final RabbitTemplate rabbitTemplate;
+    private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Отправить команду на списание суммы по заказа с аккаунта пользователя.
      */
     public void sendReserveInventoryCommand(OrderSagaState sagaState) {
-        ReservePaymentCommand command = new ReservePaymentCommand();
+        Optional<Order> orderOpt = orderRepository.findOrderById(sagaState.getOrderId())
+                .stream()
+                .filter(order -> order.getId().equals(sagaState.getOrderId()))
+                .findFirst();
+        if (orderOpt.isEmpty()) {
+            return;
+        }
+
+        ReserveInventoryCommand command = new ReserveInventoryCommand();
         command.setSagaId(sagaState.getSagaId());
         command.setOrderId(sagaState.getOrderId());
         command.setUserId(sagaState.getUserId());
-        command.setAmount(sagaState.getAmount());
+        command.setItems(orderOpt.get().getItems());
         command.setKeyIdempotence(KeyIdempotence.RESERVE.name());
 
         try {
@@ -43,11 +57,19 @@ public class InventoryServiceProxy {
      * Отправить команду на возврат суммы по заказу на счет аккаунта пользователя.
      */
     public void sendReleaseInventoryCommand(OrderSagaState sagaState) {
-        ReleasePaymentCommand command = new ReleasePaymentCommand();
+        Optional<Order> orderOpt = orderRepository.findOrderById(sagaState.getOrderId())
+                .stream()
+                .filter(order -> order.getId().equals(sagaState.getOrderId()))
+                .findFirst();
+        if (orderOpt.isEmpty()) {
+            return;
+        }
+
+        ReleaseInventoryCommand command = new ReleaseInventoryCommand();
         command.setSagaId(sagaState.getSagaId());
         command.setOrderId(sagaState.getOrderId());
         command.setUserId(sagaState.getUserId());
-        command.setAmount(sagaState.getAmount());
+        command.setItems(orderOpt.get().getItems());
         command.setKeyIdempotence(KeyIdempotence.RELEASE.name());
 
         try {
