@@ -1,0 +1,29 @@
+package com.service.adapter;
+
+import lombok.Data;
+
+@Data
+public class OrderItemDTO {
+
+    /**
+     * Название пункта заказа.
+     */
+    private String productName;
+    /**
+     * Стоимость за 1 единицу.
+     */
+    private Integer price;
+    /**
+     * Количество.
+     */
+    private Integer count;
+
+    public OrderItemDTO() {
+    }
+
+    public OrderItemDTO(String productName, Integer price) {
+        this.productName = productName;
+        this.price = price;
+    }
+
+}
