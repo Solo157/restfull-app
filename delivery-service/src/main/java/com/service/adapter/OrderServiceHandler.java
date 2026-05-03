@@ -49,14 +49,6 @@ public class OrderServiceHandler {
         final String address = event.getAddress();
         final String idempotencyKey = event.getKeyIdempotence();
 
-        Optional<ProcessedCommand> processedCommandOpt = processedCommandsRepository.findAllBySagaIdAndOrderId(sagaId, orderId).stream()
-                .max(Comparator.comparing(ProcessedCommand::getId));
-
-        // если команда уже была обработана, то ее пропускаем
-        if (processedCommandOpt.isPresent() && processedCommandOpt.get().getIdempotencyKey().equals(idempotencyKey)) {
-            return;
-        }
-
         try {
             ProcessedCommand processedCommand = new ProcessedCommand();
             processedCommand.setSagaId(sagaId);
@@ -81,7 +73,7 @@ public class OrderServiceHandler {
      * Обработка приходящего сообщения по созданному заказу и поэтому требуется его обработать - снять деньги со счета.
      */
     @RabbitListener(queues = RabbitConfig.DELIVERY_RELEASE_COMMAND_QUEUE)
-    public void handleReservePaymentCommand2(String messageBody) {
+    public void handleDeliveryReleaseCommand(String messageBody) {
         ReleaseDeliveryCommand event;
         try {
             System.out.println("Received message: " + messageBody);
@@ -95,14 +87,6 @@ public class OrderServiceHandler {
         final UUID sagaId = event.getSagaId();
         final Long orderId = event.getOrderId();
         final String idempotencyKey = event.getKeyIdempotence();
-
-        Optional<ProcessedCommand> processedCommandOpt = processedCommandsRepository.findAllBySagaIdAndOrderId(sagaId, orderId).stream()
-                .max(Comparator.comparing(ProcessedCommand::getId));
-
-        // если команда уже была обработана, то ее пропускаем
-        if (processedCommandOpt.isPresent() && processedCommandOpt.get().getIdempotencyKey().equals(idempotencyKey)) {
-            return;
-        }
 
         try {
             ProcessedCommand processedCommand = new ProcessedCommand();

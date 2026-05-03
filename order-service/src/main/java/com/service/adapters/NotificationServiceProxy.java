@@ -44,7 +44,7 @@ public class NotificationServiceProxy {
     /**
      * Отправить ивент в сервис нотификаций о том, что заказ оплачен и завершен.
      */
-    public void sendOrderCompletedEvent(Order order, String statusMessage) {
+    public void sendOrderCompletedEvent(Order order, String message) {
         try {
             String payload = objectMapper.writeValueAsString(
                     new OrderNotificationEvent(order.getUserId(),
@@ -53,6 +53,7 @@ public class NotificationServiceProxy {
                             order.getDeliveryAddress(),
                             order.getContactPhone(),
                             order.getOrderDate(),
+                            message,
                             order.getAmount()
                     )
             );

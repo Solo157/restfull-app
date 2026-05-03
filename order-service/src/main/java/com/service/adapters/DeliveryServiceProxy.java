@@ -1,12 +1,16 @@
 package com.service.adapters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.service.database.Order;
+import com.service.database.OrderRepository;
 import com.service.saga.KeyIdempotence;
 import com.service.saga.OrderSagaState;
 import com.service.saga.command.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 import static com.service.config.RabbitConfig.*;
 
@@ -15,18 +19,28 @@ import static com.service.config.RabbitConfig.*;
 public class DeliveryServiceProxy {
 
     private final RabbitTemplate rabbitTemplate;
+    private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Отправить команду на списание суммы по заказа с аккаунта пользователя.
      */
     public void sendReserveDeliveryCommand(OrderSagaState sagaState) {
-        ReserveDeliveryCommand command = new ReserveDeliveryCommand();
-        command.setSagaId(sagaState.getSagaId());
-        command.setOrderId(sagaState.getOrderId());
-        command.setUserId(sagaState.getUserId());
-        command.setAmount(sagaState.getAmount());
-        command.setKeyIdempotence(KeyIdempotence.RESERVE.name());
+        Long orderId = sagaState.getOrderId();
+        Optional<Order> orderOpt = orderRepository.findById(orderId);
+        if (orderOpt.isEmpty()) {
+            return;
+        }
+        Order order = orderOpt.get();
+
+        ReserveDeliveryCommand command = new ReserveDeliveryCommand(
+                sagaState.getSagaId(),
+                sagaState.getOrderId(),
+                sagaState.getUserId(),
+                order.getItems(),
+                order.getDeliveryAddress(),
+                UUID.randomUUID().toString()
+        );
 
         try {
             String payload = objectMapper.writeValueAsString(command);
@@ -42,12 +56,12 @@ public class DeliveryServiceProxy {
      * Отправить команду на возврат суммы по заказу на счет аккаунта пользователя.
      */
     public void sendReleaseDeliveryCommand(OrderSagaState sagaState) {
-        ReleaseDeliveryCommand command = new ReleaseDeliveryCommand();
-        command.setSagaId(sagaState.getSagaId());
-        command.setOrderId(sagaState.getOrderId());
-        command.setUserId(sagaState.getUserId());
-        command.setAmount(sagaState.getAmount());
-        command.setKeyIdempotence(KeyIdempotence.RELEASE.name());
+        ReleaseDeliveryCommand command = new ReleaseDeliveryCommand(
+                sagaState.getSagaId(),
+                sagaState.getOrderId(),
+                sagaState.getUserId(),
+                UUID.randomUUID().toString()
+        );
 
         try {
             String payload = objectMapper.writeValueAsString(command);

@@ -23,13 +23,16 @@ public class ReserveInventoryCommand {
     public ReserveInventoryCommand(@JsonProperty("sagaId") UUID sagaId,
                                    @JsonProperty("orderId") Long orderId,
                                    @JsonProperty("userId") String userId,
-                                   @JsonProperty("items") List<OrderItemDTO> items,
+                                   @JsonProperty("items") List<OrderItem> items,
                                    @JsonProperty("keyIdempotence") String keyIdempotence) {
         this.sagaId = sagaId;
         this.orderId = orderId;
         this.userId = userId;
-        this.items = items;
         this.keyIdempotence = keyIdempotence;
+
+        this.items = items.stream()
+                .map(item -> new OrderItemDTO(item.getProductName(), item.getPrice(), item.getCount()))
+                .toList();
     }
 
 }

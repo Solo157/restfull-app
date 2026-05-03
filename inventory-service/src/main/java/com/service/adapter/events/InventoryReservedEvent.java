@@ -15,17 +15,17 @@ public class InventoryReservedEvent {
     private UUID sagaId;
     private Long orderId;
     private boolean success;
-    private String errorMessage;
+    private String message;
 
     @JsonCreator
     public InventoryReservedEvent(@JsonProperty("sagaId") UUID sagaId,
                                   @JsonProperty("orderId") Long orderId,
                                   @JsonProperty("success") boolean success,
-                                  @JsonProperty("errorMessage") String errorMessage) {
+                                  @JsonProperty("message") String message) {
         this.sagaId = sagaId;
         this.orderId = orderId;
         this.success = success;
-        this.errorMessage = errorMessage;
+        this.message = message;
     }
 
 }

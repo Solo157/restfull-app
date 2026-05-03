@@ -23,12 +23,14 @@ public class ReserveDeliveryCommand {
     public ReserveDeliveryCommand(@JsonProperty("sagaId") UUID sagaId,
                                   @JsonProperty("orderId") Long orderId,
                                   @JsonProperty("userId") String userId,
-                                  @JsonProperty("amount") Integer amount,
+                                  @JsonProperty("items") List<OrderItemDTO> items,
+                                  @JsonProperty("address") String address,
                                   @JsonProperty("keyIdempotence") String keyIdempotence) {
         this.sagaId = sagaId;
         this.orderId = orderId;
         this.userId = userId;
-        this.amount = amount;
+        this.items = items;
+        this.address = address;
         this.keyIdempotence = keyIdempotence;
     }
 

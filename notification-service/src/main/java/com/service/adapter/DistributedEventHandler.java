@@ -19,22 +19,6 @@ public class DistributedEventHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * Обработка ивента о том, что заказ был отменен.
-     */
-    @RabbitListener(queues = RabbitConfig.NOTIFICATION_ORDER_CANCELED_QUEUE)
-    public void handleOrderCancelledEvent(String messageBody) {
-        try {
-            System.out.println("Received message: " + messageBody);
-            OrderNotificationEvent event = objectMapper.readValue(messageBody, OrderNotificationEvent.class);
-
-            System.out.println("Processed OrderStatusEvent for userId: " + event.getUserId());
-            notificationService.handleOrderCancelledEvent(event);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * Обработка ивента о том, что заказ был успешно завершен.
      */
     @RabbitListener(queues = RabbitConfig.NOTIFICATION_ORDER_COMPLETED_QUEUE)
@@ -44,7 +28,7 @@ public class DistributedEventHandler {
             OrderNotificationEvent event = objectMapper.readValue(messageBody, OrderNotificationEvent.class);
 
             System.out.println("Processed OrderStatusEvent for userId: " + event.getUserId());
-            notificationService.handleOrderSucceededEvent(event);
+            notificationService.saveOrderInfoWithMessage(event);
         } catch (Exception e) {
             e.printStackTrace();
         }

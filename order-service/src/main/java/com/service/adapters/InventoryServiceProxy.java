@@ -36,12 +36,15 @@ public class InventoryServiceProxy {
             return;
         }
 
-        ReserveInventoryCommand command = new ReserveInventoryCommand();
-        command.setSagaId(sagaState.getSagaId());
-        command.setOrderId(sagaState.getOrderId());
-        command.setUserId(sagaState.getUserId());
-        command.setItems(orderOpt.get().getItems());
-        command.setKeyIdempotence(KeyIdempotence.RESERVE.name());
+        Order order = orderOpt.get();
+
+        ReserveInventoryCommand command = new ReserveInventoryCommand(
+                sagaState.getSagaId(),
+                sagaState.getOrderId(),
+                sagaState.getUserId(),
+                order.getItems(),
+                UUID.randomUUID().toString()
+        );
 
         try {
             String payload = objectMapper.writeValueAsString(command);
@@ -65,12 +68,15 @@ public class InventoryServiceProxy {
             return;
         }
 
-        ReleaseInventoryCommand command = new ReleaseInventoryCommand();
-        command.setSagaId(sagaState.getSagaId());
-        command.setOrderId(sagaState.getOrderId());
-        command.setUserId(sagaState.getUserId());
-        command.setItems(orderOpt.get().getItems());
-        command.setKeyIdempotence(KeyIdempotence.RELEASE.name());
+        Order order = orderOpt.get();
+
+        ReleaseInventoryCommand command = new ReleaseInventoryCommand(
+                sagaState.getSagaId(),
+                sagaState.getOrderId(),
+                sagaState.getUserId(),
+                order.getItems(),
+                UUID.randomUUID().toString()
+        );
 
         try {
             String payload = objectMapper.writeValueAsString(command);

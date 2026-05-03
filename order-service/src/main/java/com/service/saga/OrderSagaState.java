@@ -21,7 +21,6 @@ public class OrderSagaState {
 
     private Long orderId;
     private String userId;
-//    private Integer amount;
     private SagaStatus sagaStatus;
     private SagaStep currentStep;
     private LinkedList<SagaStep> completedSteps;

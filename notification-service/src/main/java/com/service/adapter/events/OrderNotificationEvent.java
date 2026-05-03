@@ -37,6 +37,9 @@ public class OrderNotificationEvent {
      * Дата заказа.
      */
     private String orderDate;
+
+    private String message;
+
     /**
      * Сумма заказа.
      */
@@ -49,6 +52,7 @@ public class OrderNotificationEvent {
                                   @JsonProperty("deliveryAddress") String deliveryAddress,
                                   @JsonProperty("contactPhone") String contactPhone,
                                   @JsonProperty("orderDate") String orderDate,
+                                  @JsonProperty("message") String message,
                                   @JsonProperty("amount") Integer amount) {
         this.userId = userId;
         this.orderId = orderId;
@@ -56,6 +60,7 @@ public class OrderNotificationEvent {
         this.deliveryAddress = deliveryAddress;
         this.contactPhone = contactPhone;
         this.orderDate = orderDate;
+        this.message = message;
         this.amount = amount;
     }
 

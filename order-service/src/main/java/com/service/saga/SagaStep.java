@@ -16,13 +16,4 @@ public enum SagaStep {
         };
     }
 
-    public SagaStep getCompensateStep() {
-        return switch (this) {
-            case COMPENSATING -> DELIVERY;
-            case DELIVERY -> INVENTORY;
-            case INVENTORY -> PAYMENT;
-            default -> null;
-        };
-    }
-
 }

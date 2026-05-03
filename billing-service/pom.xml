@@ -95,7 +95,7 @@
                         <image>${registry.url}/restfull-billing:latest</image>
                     </to>
                     <container>
-                        <mainClass>com.service.BillingServiceApplicationasdad</mainClass>
+                        <mainClass>com.service.BillingServiceApplication</mainClass>
                         <ports>
                             <port>8090</port>
                         </ports>

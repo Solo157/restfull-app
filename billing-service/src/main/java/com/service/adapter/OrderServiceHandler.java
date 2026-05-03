@@ -46,14 +46,6 @@ public class OrderServiceHandler {
         final Integer amount = event.getAmount();
         final String idempotencyKey = event.getKeyIdempotence();
 
-        Optional<ProcessedCommand> processedCommandOpt = processedCommandsRepository.findAllBySagaIdAndOrderId(sagaId, orderId).stream()
-                .max(Comparator.comparing(ProcessedCommand::getId));
-
-        // если команда уже была обработана, то ее пропускаем
-        if (processedCommandOpt.isPresent() && processedCommandOpt.get().getIdempotencyKey().equals(idempotencyKey)) {
-            return;
-        }
-
         try {
             ProcessedCommand processedCommand = new ProcessedCommand();
             processedCommand.setSagaId(sagaId);
@@ -75,7 +67,7 @@ public class OrderServiceHandler {
      * Обработка приходящего сообщения по созданному заказу и поэтому требуется его обработать - снять деньги со счета.
      */
     @RabbitListener(queues = RabbitConfig.BILLING_RELEASE_PAYMENT_COMMAND_QUEUE)
-    public void handleReservePaymentCommand2(String messageBody) {
+    public void handleReleasePaymentCommand(String messageBody) {
         ReleasePaymentCommand event;
         try {
             System.out.println("Received message: " + messageBody);
@@ -92,14 +84,6 @@ public class OrderServiceHandler {
         final Integer amount = event.getAmount();
         final String idempotencyKey = event.getKeyIdempotence();
 
-        Optional<ProcessedCommand> processedCommandOpt = processedCommandsRepository.findAllBySagaIdAndOrderId(sagaId, orderId).stream()
-                .max(Comparator.comparing(ProcessedCommand::getId));
-
-        // если команда уже была обработана, то ее пропускаем
-        if (processedCommandOpt.isPresent() && processedCommandOpt.get().getIdempotencyKey().equals(idempotencyKey)) {
-            return;
-        }
-
         try {
             ProcessedCommand processedCommand = new ProcessedCommand();
             processedCommand.setSagaId(sagaId);
@@ -114,7 +98,7 @@ public class OrderServiceHandler {
         boolean depositAccount = billingAccountService.depositAccount(userId, amount);
 
         String message = depositAccount ? "cash for order released" : "cash for order is not released";
-        orderServiceProxy.sendPaymentReservedEvent(sagaId, orderId, depositAccount, message);
+        orderServiceProxy.sendPaymentReleasedEvent(sagaId, orderId, depositAccount, message);
     }
 
 }

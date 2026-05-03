@@ -92,7 +92,7 @@
                         <image>openjdk:27-ea-oraclelinux10</image>
                     </from>
                     <to>
-                        <image>${registry.url}/restfull-billing:latest</image>
+                        <image>${registry.url}/restfull-delivery:latest</image>
                     </to>
                     <container>
                         <mainClass>com.service.DeliveryServiceApplication</mainClass>

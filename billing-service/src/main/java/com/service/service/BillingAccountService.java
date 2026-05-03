@@ -1,6 +1,5 @@
 package com.service.service;
 
-import com.service.adapter.OrderServiceProxy;
 import com.service.database.Account;
 import com.service.database.AccountRepository;
 import lombok.RequiredArgsConstructor;

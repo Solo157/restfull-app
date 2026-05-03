@@ -3,6 +3,7 @@ package com.service.saga.command;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.service.api.dto.OrderItemDTO;
+import com.service.database.OrderItem;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -22,13 +23,16 @@ public class ReleaseInventoryCommand {
     public ReleaseInventoryCommand(@JsonProperty("sagaId") UUID sagaId,
                                    @JsonProperty("orderId") Long orderId,
                                    @JsonProperty("userId") String userId,
-                                   @JsonProperty("items") List<OrderItemDTO> items,
+                                   @JsonProperty("items") List<OrderItem> items,
                                    @JsonProperty("keyIdempotence") String keyIdempotence) {
         this.sagaId = sagaId;
         this.orderId = orderId;
         this.userId = userId;
-        this.items = items;
         this.keyIdempotence = keyIdempotence;
+
+        this.items = items.stream()
+                .map(item -> new OrderItemDTO(item.getProductName(), item.getPrice(), item.getCount()))
+                .toList();
     }
 
 }

@@ -14,17 +14,17 @@ public class DeliveryReservedEvent {
     private UUID sagaId;
     private Long orderId;
     private boolean success;
-    private String errorMessage;
+    private String message;
 
     @JsonCreator
     public DeliveryReservedEvent(@JsonProperty("sagaId") UUID sagaId,
                                  @JsonProperty("orderId") Long orderId,
                                  @JsonProperty("success") boolean success,
-                                 @JsonProperty("errorMessage") String errorMessage) {
+                                 @JsonProperty("message") String message) {
         this.sagaId = sagaId;
         this.orderId = orderId;
         this.success = success;
-        this.errorMessage = errorMessage;
+        this.message = message;
     }
 
 }

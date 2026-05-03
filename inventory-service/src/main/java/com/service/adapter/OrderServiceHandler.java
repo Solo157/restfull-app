@@ -29,12 +29,12 @@ public class OrderServiceHandler {
      * Обработка приходящего сообщения по созданному заказу и поэтому требуется его обработать - снять деньги со счета.
      */
     @RabbitListener(queues = RabbitConfig.INVENTORY_RESERVE_COMMAND_QUEUE)
-    public void handleReservePaymentCommand(String messageBody) {
+    public void handleInventoryReserveCommand(String messageBody) {
         ReserveInventoryCommand event;
         try {
             System.out.println("Received message: " + messageBody);
             event = objectMapper.readValue(messageBody, ReserveInventoryCommand.class);
-            System.out.println("Received event for userId: " + event.getUserId() + ", amount: " + event.getAmount());
+            System.out.println("Received event for userId: " + event.getUserId());
         } catch (Exception e) {
             e.printStackTrace();
             return;
@@ -44,14 +44,6 @@ public class OrderServiceHandler {
         final Long orderId = event.getOrderId();
         final List<OrderItemDTO> items = event.getItems();
         final String idempotencyKey = event.getKeyIdempotence();
-
-        Optional<ProcessedCommand> processedCommandOpt = processedCommandsRepository.findAllBySagaIdAndOrderId(sagaId, orderId).stream()
-                .max(Comparator.comparing(ProcessedCommand::getId));
-
-        // если команда уже была обработана, то ее пропускаем
-        if (processedCommandOpt.isPresent() && processedCommandOpt.get().getIdempotencyKey().equals(idempotencyKey)) {
-            return;
-        }
 
         try {
             ProcessedCommand processedCommand = new ProcessedCommand();
@@ -78,12 +70,12 @@ public class OrderServiceHandler {
      * Обработка приходящего сообщения по созданному заказу и поэтому требуется его обработать - снять деньги со счета.
      */
     @RabbitListener(queues = RabbitConfig.INVENTORY_RELEASE_COMMAND_QUEUE)
-    public void handleReservePaymentCommand2(String messageBody) {
+    public void handleInventoryReleaseCommand(String messageBody) {
         ReleaseInventoryCommand event;
         try {
             System.out.println("Received message: " + messageBody);
             event = objectMapper.readValue(messageBody, ReleaseInventoryCommand.class);
-            System.out.println("Received event for userId: " + event.getUserId() + ", amount: " + event.getAmount());
+            System.out.println("Received event for userId: " + event.getUserId());
         } catch (Exception e) {
             e.printStackTrace();
             return;
@@ -93,14 +85,6 @@ public class OrderServiceHandler {
         final Long orderId = event.getOrderId();
         final List<OrderItemDTO> items = event.getItems();
         final String idempotencyKey = event.getKeyIdempotence();
-
-        Optional<ProcessedCommand> processedCommandOpt = processedCommandsRepository.findAllBySagaIdAndOrderId(sagaId, orderId).stream()
-                .max(Comparator.comparing(ProcessedCommand::getId));
-
-        // если команда уже была обработана, то ее пропускаем
-        if (processedCommandOpt.isPresent() && processedCommandOpt.get().getIdempotencyKey().equals(idempotencyKey)) {
-            return;
-        }
 
         try {
             ProcessedCommand processedCommand = new ProcessedCommand();

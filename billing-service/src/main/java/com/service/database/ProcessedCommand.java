@@ -1,6 +1,5 @@
 package com.service.database;
 
-import com.service.saga.KeyIdempotence;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
@@ -22,13 +21,6 @@ public class ProcessedCommand {
 
     @Column(nullable = false, unique = true)
     private String idempotencyKey;
-
-    /**
-     * Оптимистическая блокировка. Если два потока пытаются обновить одну строку одновременно,
-     * один из них получит OptimisticLockException.
-     */
-    @Version
-    private Long version;
 
     @CreatedDate
     private Date date;

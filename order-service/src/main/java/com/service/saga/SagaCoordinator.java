@@ -64,7 +64,7 @@ public class SagaCoordinator {
         sagaStateRepository.save(state);
 
         // Отправляем команду на следующий шаг
-        sendCommandForStep(state, nextStep);
+        sendCommandForStep(state);
     }
 
     @Transactional
@@ -110,8 +110,8 @@ public class SagaCoordinator {
         sendCompensationCommand(state, stepsToCompensate.getFirst());
     }
 
-    private void sendCommandForStep(OrderSagaState state, SagaStep step) {
-        switch (step) {
+    private void sendCommandForStep(OrderSagaState state) {
+        switch (state.getCurrentStep()) {
             case PAYMENT -> billingServiceProxy.sendReservePaymentCommand(state);
             case INVENTORY -> inventoryServiceProxy.sendReserveInventoryCommand(state);
             case DELIVERY -> deliveryServiceProxy.sendReserveDeliveryCommand(state);

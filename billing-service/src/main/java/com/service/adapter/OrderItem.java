@@ -17,10 +17,12 @@ public class OrderItem {
      */
     private Integer price;
 
+    private Integer count;
+
     public OrderItem() {
     }
 
-    public OrderItem(String productName, Integer price) {
+    public OrderItem(String productName, Integer price, Integer count) {
         this.productName = productName;
         this.price = price;
     }
