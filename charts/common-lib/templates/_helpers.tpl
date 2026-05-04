@@ -13,3 +13,9 @@ notification-service
 {{- define "order-service.name" -}}
 order-service
 {{- end }}
+{{- define "delivery-service.name" -}}
+delivery-service
+{{- end }}
+{{- define "inventory-service.name" -}}
+inventory-service
+{{- end }}

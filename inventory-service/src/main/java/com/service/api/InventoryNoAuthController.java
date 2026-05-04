@@ -13,9 +13,9 @@ import java.util.*;
  * Также тут находятся ендпоинты, которые нужны для запросов между сервисами.
  */
 @RestController
-@RequestMapping("/billing")
+@RequestMapping("/inventory")
 @RequiredArgsConstructor
-public class InventoryAccountNoAuthController {
+public class InventoryNoAuthController {
 
     private final InventoryService accountService;
 

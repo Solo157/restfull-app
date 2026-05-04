@@ -44,17 +44,34 @@ Order сервис проверяет, хватит ли средств на с�
    helm upgrade --install common-config charts/common-config/ -f charts/common-config/test.yaml
    helm upgrade --install common-secret charts/common-secret/ -f charts/common-secret/test.yaml
 4. Скачиваем и поднимаем ingress-controller: make -f install-nginx-ingress.mk install
+
+helm upgrade --install nginx ingress-nginx/ingress-nginx \
+-f nginx-ingress/nginx-ingress.yaml \
+--namespace auth-kuber-service-space \
+--create-namespace
+
 Если поднять не получилось, то скорее всего проблема со скачиванием образа. Поэтому нужно его скачать и запушить в 
 docker миникуба:
    docker pull registry.k8s.io/ingress-nginx/controller:v1.15.1@sha256:594ceea76b01c592858f803f9ff4d2cb40542cae2060410b2c95f75907d659e1
    minikube image load registry.k8s.io/ingress-nginx/controller:v1.15.1
 5. С помощью команды kubectl get pods -n auth-kuber-service-space удостоверяемся, что ingress стал READY.
 6. Создаем/поднимаем все сервисы:
+
+   helm dependency build ./charts/auth && \
+   helm dependency build ./charts/billing && \
+   helm dependency build ./charts/notification && \
+   helm dependency build ./charts/order && \
+   helm dependency build ./charts/delivery && \
+   helm dependency build ./charts/inventory && \
+   helm dependency build ./charts/auth-validate
+7. 
    helm upgrade --install auth-service ./charts/auth -n auth-kuber-service-space && \
    helm upgrade --install billing-service ./charts/billing -n auth-kuber-service-space && \
    helm upgrade --install notification-service ./charts/notification -n auth-kuber-service-space && \
    helm upgrade --install order-service ./charts/order -n auth-kuber-service-space && \
-   helm upgrade --install rabbitmq-service ./charts/rabbit -f charts/rabbit/values.yaml -n auth-kuber-service-space
+   helm upgrade --install delivery-service ./charts/delivery -n auth-kuber-service-space && \
+   helm upgrade --install inventory-service ./charts/inventory -n auth-kuber-service-space && \
+   helm upgrade --install rabbitmq-service ./charts/rabbit -f charts/rabbit/values.yaml -n auth-kuber-service-space && \
    helm upgrade --install auth-validate-service ./charts/auth-validate -f charts/auth-validate/values.yaml -n auth-kuber-service-space
 
 ТЕСТИРОВАНИЕ:

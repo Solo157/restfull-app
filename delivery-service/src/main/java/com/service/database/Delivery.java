@@ -18,6 +18,12 @@ public class Delivery {
     private Long courierId;
     @Column(nullable = false, unique = true)
     private Long orderId;
+
+    /**
+     * Товары заказа.
+     */
+    @ElementCollection
+    @CollectionTable(name = "order_items", joinColumns = @JoinColumn(name = "order_id"))
     private List<OrderItem> items;
     private String address;
 

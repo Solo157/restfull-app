@@ -1,0 +1,15 @@
+replicaCount: 1
+
+service:
+  port: 8090
+  targetPort: 8090
+  type: ClusterIP
+
+image:
+  inventoryRepository: ghcr.io/solo157/restfull-inventory
+  tag: latest
+  pullPolicy: Always
+
+app:
+  inventoryContainerPort: 8090
+  inventoryHealthPath: /inventory/health

@@ -23,9 +23,10 @@ public class OrderItem {
     public OrderItem() {
     }
 
-    public OrderItem(String productName, Integer price) {
+    public OrderItem(String productName, Integer price, Integer count) {
         this.productName = productName;
         this.price = price;
+        this.count = count;
     }
 
 }

@@ -28,7 +28,7 @@ public class NotificationMessagesDTO {
         this.orderDate = order.getOrderDate();
 
         this.items = order.getItemInfos().stream()
-                .map(item -> new OrderItemDTO(item.getProductName(), item.getPrice()))
+                .map(item -> new OrderItemDTO(item.getProductName(), item.getPrice(), item.getCount()))
                 .toList();
     }
 

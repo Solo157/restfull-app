@@ -4,10 +4,12 @@ import com.service.adapters.BillingServiceProxy;
 import com.service.adapters.NotificationServiceProxy;
 import com.service.api.dto.OrderDTO;
 import com.service.api.dto.OrderItemDTO;
-import com.service.database.*;
+import com.service.database.Order;
+import com.service.database.OrderRepository;
+import com.service.database.OrderStatus;
 import com.service.mapper.OrderMapper;
 import com.service.saga.OrderSagaState;
-import com.service.saga.SagaCoordinator;
+import com.service.saga.SagaStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +24,7 @@ import java.util.*;
 public class OrderManagerService {
 
     private final BillingServiceProxy billingServiceProxy;
-    private final SagaCoordinator sagaCoordinator;
+    private final SagaManager sagaManager;
     private final OrderRepository orderRepository;
     private final NotificationServiceProxy notificationServiceProxy;
     private final OrderMapper orderMapper;
@@ -51,12 +53,15 @@ public class OrderManagerService {
 
         UUID sagaId = UUID.randomUUID();
 
-        OrderSagaState startSagaState = sagaCoordinator.getStartSagaState(
+        OrderSagaState startSagaState = sagaManager.getStartSagaState(
                 sagaId,
                 savedOrder.getId(),
                 orderDTO.getUserId(),
                 orderAmount
         );
+
+        startSagaState.setSagaStatus(SagaStatus.IN_PROGRESS);
+        sagaManager.save(startSagaState);
 
         billingServiceProxy.sendReservePaymentCommand(startSagaState);
         return Optional.of(savedOrder);

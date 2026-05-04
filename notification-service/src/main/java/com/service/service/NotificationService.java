@@ -52,7 +52,7 @@ public class NotificationService {
         order.setAmount(event.getAmount());
 
         List<OrderItemInfo> orderItemInfos = event.getItems().stream()
-                .map(item -> new OrderItemInfo(item.getProductName(), item.getPrice()))
+                .map(item -> new OrderItemInfo(item.getProductName(), item.getPrice(), item.getCount()))
                 .toList();
         order.setItemInfos(orderItemInfos);
 

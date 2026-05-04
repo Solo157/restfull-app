@@ -3,8 +3,8 @@ package com.service.saga;
 import com.service.adapters.BillingServiceProxy;
 import com.service.adapters.DeliveryServiceProxy;
 import com.service.adapters.InventoryServiceProxy;
-import com.service.database.SagaStateRepository;
 import com.service.service.OrderManagerService;
+import com.service.service.SagaManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,38 +15,23 @@ import java.util.*;
 @RequiredArgsConstructor
 public class SagaCoordinator {
 
-    private final SagaStateRepository sagaStateRepository;
+    private final SagaManager sagaManager;
     private final BillingServiceProxy billingServiceProxy;
     private final DeliveryServiceProxy deliveryServiceProxy;
     private final InventoryServiceProxy inventoryServiceProxy;
     private final OrderManagerService orderManagerService;
 
     /**
-     * Запуск новой саги
-     */
-    @Transactional
-    public OrderSagaState getStartSagaState(UUID sagaId, Long orderId, String userId, Integer amount) {
-        OrderSagaState sagaState = new OrderSagaState(
-                sagaId,
-                orderId,
-                userId,
-                SagaStatus.STARTED,
-                SagaStep.PAYMENT,
-                new LinkedList<>(),
-                "",
-                new Date(),
-                new Date()
-        );
-        return sagaStateRepository.save(sagaState);
-    }
-
-    /**
      * Переход к следующему шагу саги
      */
     @Transactional
     public void advanceToNextStep(UUID sagaId) {
-        OrderSagaState state = sagaStateRepository.findBySagaId(sagaId)
-                .orElseThrow(() -> new RuntimeException("Saga not found: " + sagaId));
+        Optional<OrderSagaState> orderSagaStateOpt = sagaManager.getOptById(sagaId);
+        if (orderSagaStateOpt.isEmpty()) {
+            return;
+        }
+
+        OrderSagaState state = orderSagaStateOpt.get();
 
         if (state.getSagaStatus() != SagaStatus.IN_PROGRESS) {
             throw new IllegalStateException("Saga is not in progress");
@@ -61,7 +46,7 @@ public class SagaCoordinator {
         state.getCompletedSteps().add(state.getCurrentStep());
         state.setCurrentStep(nextStep);
         state.setUpdatedAt(new Date());
-        sagaStateRepository.save(state);
+        sagaManager.save(state);
 
         // Отправляем команду на следующий шаг
         sendCommandForStep(state);
@@ -70,19 +55,22 @@ public class SagaCoordinator {
     @Transactional
     public void completeSuccessfulSaga(OrderSagaState sagaState) {
         sagaState.getCompletedSteps().add(sagaState.getCurrentStep());
+        sagaState.setSagaStatus(SagaStatus.COMPLETED);
         sagaState.setCurrentStep(SagaStep.COMPLETED);
         sagaState.setUpdatedAt(new Date());
 
-        sagaStateRepository.save(sagaState);
+        sagaManager.save(sagaState);
         orderManagerService.completeOrder(sagaState.getOrderId(), "order completed");
     }
 
     @Transactional
     public void completeFailedSaga(UUID sagaId) {
-        OrderSagaState state = sagaStateRepository.findBySagaId(sagaId)
-                .orElseThrow(() -> new RuntimeException("Saga not found: " + sagaId));
+        Optional<OrderSagaState> orderSagaStateOpt = sagaManager.getOptById(sagaId);
+        if (orderSagaStateOpt.isEmpty()) {
+            return;
+        }
 
-        orderManagerService.cancelOrder(state.getOrderId(), state.getErrorMessage());
+        orderManagerService.cancelOrder(orderSagaStateOpt.get().getOrderId(), orderSagaStateOpt.get().getErrorMessage());
     }
 
     /**
@@ -90,14 +78,18 @@ public class SagaCoordinator {
      */
     @Transactional
     public void compensateSaga(UUID sagaId, String errorMessage) {
-        OrderSagaState state = sagaStateRepository.findBySagaId(sagaId)
-                .orElseThrow(() -> new RuntimeException("Saga not found: " + sagaId));
+        Optional<OrderSagaState> orderSagaStateOpt = sagaManager.getOptById(sagaId);
+        if (orderSagaStateOpt.isEmpty()) {
+            return;
+        }
+
+        OrderSagaState state = orderSagaStateOpt.get();
 
         state.setSagaStatus(SagaStatus.FAILED);
         state.setCurrentStep(SagaStep.COMPENSATING);
         state.setErrorMessage(errorMessage);
         state.setUpdatedAt(new Date());
-        sagaStateRepository.save(state);
+        sagaManager.save(state);
 
         // Проходим по завершенным шагам в обратном порядке
         List<SagaStep> stepsToCompensate = new ArrayList<>(state.getCompletedSteps());
@@ -107,7 +99,7 @@ public class SagaCoordinator {
             completeFailedSaga(sagaId);
         }
 
-        sendCompensationCommand(state, stepsToCompensate.getFirst());
+        sendCompensationCommand(orderSagaStateOpt.get(), stepsToCompensate.getFirst());
     }
 
     private void sendCommandForStep(OrderSagaState state) {
@@ -119,10 +111,12 @@ public class SagaCoordinator {
     }
 
     public void sendCompensationCommand(UUID sagaId, SagaStep step) {
-        OrderSagaState state = sagaStateRepository.findBySagaId(sagaId)
-                .orElseThrow(() -> new RuntimeException("Saga not found: " + sagaId));
+        Optional<OrderSagaState> orderSagaStateOpt = sagaManager.getOptById(sagaId);
+        if (orderSagaStateOpt.isEmpty()) {
+            return;
+        }
 
-        sendCompensationCommand(state, step);
+        sendCompensationCommand(orderSagaStateOpt.get(), step);
     }
 
     private void sendCompensationCommand(OrderSagaState state, SagaStep step) {

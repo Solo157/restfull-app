@@ -19,12 +19,15 @@ public class OrderItemInfo {
      */
     private Integer price;
 
+    private Integer count;
+
     public OrderItemInfo() {
     }
 
-    public OrderItemInfo(String productName, Integer price) {
+    public OrderItemInfo(String productName, Integer price, Integer count) {
         this.productName = productName;
         this.price = price;
+        this.count = count;
     }
 
 }

@@ -17,12 +17,15 @@ public class OrderItemDTO {
      */
     private Integer price;
 
+    private Integer count;
+
     public OrderItemDTO() {
     }
 
-    public OrderItemDTO(String productName, Integer price) {
+    public OrderItemDTO(String productName, Integer price, Integer count) {
         this.productName = productName;
         this.price = price;
+        this.count = count;
     }
 
 }

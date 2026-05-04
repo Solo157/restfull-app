@@ -3,7 +3,6 @@ package com.service.adapters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.database.Order;
 import com.service.database.OrderRepository;
-import com.service.saga.KeyIdempotence;
 import com.service.saga.OrderSagaState;
 import com.service.saga.command.ReleasePaymentCommand;
 import com.service.saga.command.ReservePaymentCommand;
@@ -13,9 +12,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.service.config.RabbitConfig.ORDER_EVENTS_TOPIC_EXCHANGE;
 import static com.service.config.RabbitConfig.RELEASE_PAYMENT_COMMAND_KEY;
 import static com.service.config.RabbitConfig.RESERVE_PAYMENT_COMMAND_KEY;
-import static com.service.config.RabbitConfig.ORDER_EVENTS_TOPIC_EXCHANGE;
 
 @Component
 @RequiredArgsConstructor
