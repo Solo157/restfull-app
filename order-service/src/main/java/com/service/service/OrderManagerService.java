@@ -43,14 +43,11 @@ public class OrderManagerService {
         Order newOrder = orderMapper.toOrder(orderDTO);
 
         int orderAmount = orderDTO.getItems().stream()
-                .mapToInt(OrderItemDTO::getPrice)
+                .mapToInt(itemDTO -> itemDTO.getPrice() * itemDTO.getCount())
                 .sum();
         newOrder.setAmount(orderAmount);
-
         newOrder.setOrderStatus(OrderStatus.NEW);
-
         Order savedOrder = orderRepository.save(newOrder);
-
         UUID sagaId = UUID.randomUUID();
 
         OrderSagaState startSagaState = sagaManager.getStartSagaState(
@@ -59,7 +56,6 @@ public class OrderManagerService {
                 orderDTO.getUserId(),
                 orderAmount
         );
-
         startSagaState.setSagaStatus(SagaStatus.IN_PROGRESS);
         sagaManager.save(startSagaState);
 

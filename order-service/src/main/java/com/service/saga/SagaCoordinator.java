@@ -63,14 +63,18 @@ public class SagaCoordinator {
         orderManagerService.completeOrder(sagaState.getOrderId(), "order completed");
     }
 
-    @Transactional
     public void completeFailedSaga(UUID sagaId) {
         Optional<OrderSagaState> orderSagaStateOpt = sagaManager.getOptById(sagaId);
         if (orderSagaStateOpt.isEmpty()) {
             return;
         }
 
-        orderManagerService.cancelOrder(orderSagaStateOpt.get().getOrderId(), orderSagaStateOpt.get().getErrorMessage());
+        OrderSagaState state = orderSagaStateOpt.get();
+        state.setSagaStatus(SagaStatus.FAILED);
+        state.setUpdatedAt(new Date());
+        sagaManager.save(state);
+
+        orderManagerService.cancelOrder(state.getOrderId(), state.getErrorMessage());
     }
 
     /**
@@ -97,6 +101,7 @@ public class SagaCoordinator {
 
         if (stepsToCompensate.isEmpty()) {
             completeFailedSaga(sagaId);
+            return;
         }
 
         sendCompensationCommand(orderSagaStateOpt.get(), stepsToCompensate.getFirst());

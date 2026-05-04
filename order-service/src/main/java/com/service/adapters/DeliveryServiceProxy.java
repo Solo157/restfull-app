@@ -1,11 +1,12 @@
 package com.service.adapters;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.database.Order;
 import com.service.database.OrderRepository;
-import com.service.saga.KeyIdempotence;
 import com.service.saga.OrderSagaState;
-import com.service.saga.command.*;
+import com.service.saga.command.ReleaseDeliveryCommand;
+import com.service.saga.command.ReserveDeliveryCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,10 @@ import java.util.*;
 
 import static com.service.config.RabbitConfig.*;
 
+/**
+ * Прокси для отправки команд в delivery-service через RabbitMQ.
+ * Отправляет команды на назначение и снятие курьера для доставки заказа.
+ */
 @Component
 @RequiredArgsConstructor
 public class DeliveryServiceProxy {
@@ -22,16 +27,11 @@ public class DeliveryServiceProxy {
     private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Отправить команду на списание суммы по заказа с аккаунта пользователя.
-     */
     public void sendReserveDeliveryCommand(OrderSagaState sagaState) {
-        Long orderId = sagaState.getOrderId();
-        Optional<Order> orderOpt = orderRepository.findById(orderId);
-        if (orderOpt.isEmpty()) {
+        Order order = findOrderOrReturn(sagaState.getOrderId());
+        if (order == null) {
             return;
         }
-        Order order = orderOpt.get();
 
         ReserveDeliveryCommand command = new ReserveDeliveryCommand(
                 sagaState.getSagaId(),
@@ -42,19 +42,9 @@ public class DeliveryServiceProxy {
                 UUID.randomUUID().toString()
         );
 
-        try {
-            String payload = objectMapper.writeValueAsString(command);
-
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, RESERVE_DELIVERY_COMMAND_KEY, payload);
-            System.out.println("Message sent");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sendMessage(RESERVE_DELIVERY_COMMAND_KEY, command);
     }
 
-    /**
-     * Отправить команду на возврат суммы по заказу на счет аккаунта пользователя.
-     */
     public void sendReleaseDeliveryCommand(OrderSagaState sagaState) {
         ReleaseDeliveryCommand command = new ReleaseDeliveryCommand(
                 sagaState.getSagaId(),
@@ -63,12 +53,19 @@ public class DeliveryServiceProxy {
                 UUID.randomUUID().toString()
         );
 
+        sendMessage(RELEASE_DELIVERY_COMMAND_KEY, command);
+    }
+
+    private Order findOrderOrReturn(Long orderId) {
+        return orderRepository.findById(orderId).orElse(null);
+    }
+
+    private void sendMessage(String routingKey, Object command) {
         try {
             String payload = objectMapper.writeValueAsString(command);
-
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, RELEASE_DELIVERY_COMMAND_KEY, payload);
+            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, routingKey, payload);
             System.out.println("Message sent");
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
     }

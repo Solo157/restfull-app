@@ -7,13 +7,31 @@ import lombok.NoArgsConstructor;
 
 import java.util.*;
 
+/**
+ * Событие от billing-service о результате резервирования средств пользователя.
+ */
 @Data
 @NoArgsConstructor
 public class PaymentReservedEvent {
 
+    /**
+     * Уникальный идентификатор saga-процесса.
+     */
     private UUID sagaId;
+
+    /**
+     * Идентификатор заказа.
+     */
     private Long orderId;
+
+    /**
+     * Флаг успешности операции резервирования средств.
+     */
     private boolean success;
+
+    /**
+     * Сообщение с описанием результата операции.
+     */
     private String message;
 
     @JsonCreator

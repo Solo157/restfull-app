@@ -39,6 +39,9 @@ public class OrderNotificationEvent {
      */
     private String orderDate;
 
+    /**
+     * Текст уведомления, описывающий итоговое сообщение для пользователя.
+     */
     private String message;
 
     /**

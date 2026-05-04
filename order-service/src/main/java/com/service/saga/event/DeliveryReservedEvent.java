@@ -7,13 +7,31 @@ import lombok.NoArgsConstructor;
 
 import java.util.*;
 
+/**
+ * Событие от delivery-service о результате резервирования курьера для доставки.
+ */
 @Data
 @NoArgsConstructor
 public class DeliveryReservedEvent {
 
+    /**
+     * Уникальный идентификатор saga-процесса.
+     */
     private UUID sagaId;
+
+    /**
+     * Идентификатор заказа.
+     */
     private Long orderId;
+
+    /**
+     * Флаг успешности операции резервирования курьера.
+     */
     private boolean success;
+
+    /**
+     * Сообщение с описанием результата операции.
+     */
     private String message;
 
     @JsonCreator

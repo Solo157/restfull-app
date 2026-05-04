@@ -1,5 +1,6 @@
 package com.service.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.adapter.commands.ReleaseDeliveryCommand;
 import com.service.adapter.commands.ReserveDeliveryCommand;
@@ -15,7 +16,8 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 /**
- * Обработчик сообщений от RabbitMQ.
+ * Обработчик команд из RabbitMQ для delivery-service.
+ * Обрабатывает команды на назначение и снятие курьера для доставки заказа.
  */
 @Component
 @RequiredArgsConstructor
@@ -26,37 +28,22 @@ public class OrderServiceHandler {
     private final OrderServiceProxy orderServiceProxy;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Обработка приходящего сообщения по созданному заказу и поэтому требуется его обработать - снять деньги со счета.
-     */
     @RabbitListener(queues = RabbitConfig.DELIVERY_RESERVE_COMMAND_QUEUE)
     public void handleDeliveryReserveCommand(String messageBody) {
-        ReserveDeliveryCommand event;
-        try {
-            System.out.println("Received message: " + messageBody);
-            event = objectMapper.readValue(messageBody, ReserveDeliveryCommand.class);
-            System.out.println("Received event for userId: " + event.getUserId());
-        } catch (Exception e) {
-            e.printStackTrace();
+        ReserveDeliveryCommand command = deserializeCommand(messageBody, ReserveDeliveryCommand.class);
+        if (command == null) {
             return;
         }
 
-        final UUID sagaId = event.getSagaId();
-        final Long orderId = event.getOrderId();
-        final List<OrderItem> items = event.getItems().stream()
+        final UUID sagaId = command.getSagaId();
+        final Long orderId = command.getOrderId();
+        final List<OrderItem> items = command.getItems().stream()
                 .map(itemDTO -> new OrderItem(itemDTO.getProductName(), itemDTO.getPrice(), itemDTO.getCount()))
                 .toList();
-        final String address = event.getAddress();
-        final String idempotencyKey = event.getKeyIdempotence();
+        final String address = command.getAddress();
+        final String idempotencyKey = command.getKeyIdempotence();
 
-        try {
-            ProcessedCommand processedCommand = new ProcessedCommand();
-            processedCommand.setSagaId(sagaId);
-            processedCommand.setOrderId(orderId);
-            processedCommand.setIdempotencyKey(idempotencyKey);
-            processedCommandsRepository.save(processedCommand);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (!saveProcessedCommand(sagaId, orderId, idempotencyKey)) {
             return;
         }
 
@@ -69,33 +56,18 @@ public class OrderServiceHandler {
         orderServiceProxy.sendDeliveryReservedEvent(sagaId, orderId, true, "courier is assigment");
     }
 
-    /**
-     * Обработка приходящего сообщения по созданному заказу и поэтому требуется его обработать - снять деньги со счета.
-     */
     @RabbitListener(queues = RabbitConfig.DELIVERY_RELEASE_COMMAND_QUEUE)
     public void handleDeliveryReleaseCommand(String messageBody) {
-        ReleaseDeliveryCommand event;
-        try {
-            System.out.println("Received message: " + messageBody);
-            event = objectMapper.readValue(messageBody, ReleaseDeliveryCommand.class);
-            System.out.println("Received event for userId: " + event.getUserId());
-        } catch (Exception e) {
-            e.printStackTrace();
+        ReleaseDeliveryCommand command = deserializeCommand(messageBody, ReleaseDeliveryCommand.class);
+        if (command == null) {
             return;
         }
 
-        final UUID sagaId = event.getSagaId();
-        final Long orderId = event.getOrderId();
-        final String idempotencyKey = event.getKeyIdempotence();
+        final UUID sagaId = command.getSagaId();
+        final Long orderId = command.getOrderId();
+        final String idempotencyKey = command.getKeyIdempotence();
 
-        try {
-            ProcessedCommand processedCommand = new ProcessedCommand();
-            processedCommand.setSagaId(sagaId);
-            processedCommand.setOrderId(orderId);
-            processedCommand.setIdempotencyKey(idempotencyKey);
-            processedCommandsRepository.save(processedCommand);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (!saveProcessedCommand(sagaId, orderId, idempotencyKey)) {
             return;
         }
 
@@ -106,6 +78,38 @@ public class OrderServiceHandler {
         }
 
         orderServiceProxy.sendDeliveryReleasedEvent(sagaId, orderId, true, "courier is unassigment");
+    }
+
+    private <T> T deserializeCommand(String messageBody, Class<T> commandType) {
+        System.out.println("Received message: " + messageBody);
+        try {
+            T cmd = objectMapper.readValue(messageBody, commandType);
+            System.out.println("Received event for userId: " + extractUserId(cmd));
+            return cmd;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String extractUserId(Object cmd) {
+        if (cmd instanceof ReserveDeliveryCommand) return ((ReserveDeliveryCommand) cmd).getUserId();
+        if (cmd instanceof ReleaseDeliveryCommand) return ((ReleaseDeliveryCommand) cmd).getUserId();
+        return "unknown";
+    }
+
+    private boolean saveProcessedCommand(UUID sagaId, Long orderId, String idempotencyKey) {
+        try {
+            ProcessedCommand processedCommand = new ProcessedCommand();
+            processedCommand.setSagaId(sagaId);
+            processedCommand.setOrderId(orderId);
+            processedCommand.setIdempotencyKey(idempotencyKey);
+            processedCommandsRepository.save(processedCommand);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
 }

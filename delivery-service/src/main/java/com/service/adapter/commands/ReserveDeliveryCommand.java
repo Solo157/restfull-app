@@ -8,15 +8,41 @@ import lombok.NoArgsConstructor;
 
 import java.util.*;
 
+/**
+ * Команда на резервирование курьера для доставки, приходящая от order-service в рамках saga.
+ */
 @Data
 @NoArgsConstructor
 public class ReserveDeliveryCommand {
 
+    /**
+     * Уникальный идентификатор saga-процесса.
+     */
     private UUID sagaId;
+
+    /**
+     * Идентификатор заказа.
+     */
     private Long orderId;
+
+    /**
+     * Идентификатор пользователя, оформившего заказ.
+     */
     private String userId;
+
+    /**
+     * Список позиций заказа (товары, их цены и количества).
+     */
     private List<OrderItemDTO> items;
+
+    /**
+     * Адрес доставки заказа.
+     */
     private String address;
+
+    /**
+     * Ключ идемпотентности для защиты от дублирования обработки команды.
+     */
     private String keyIdempotence;
 
     @JsonCreator

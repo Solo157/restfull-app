@@ -12,13 +12,35 @@ public class RabbitConfig {
      */
     public static final String ORDER_EVENTS_TOPIC_EXCHANGE = "order.events";
 
-    public static final String RESERVE_PAYMENT_COMMAND_KEY = "reserve.payment.command"; // ключ для привязки очереди по обработке снятия средств
-    public static final String PAYMENT_RESERVED_EVENT_KEY = "payment.reserved.event"; // ключ для отправки ивента, что средства списаны
-    public static final String BILLING_RESERVE_PAYMENT_COMMAND_QUEUE = "billing.reserve.payment.command.queue"; // очередь по обработке снятия средств
+    /**
+     * Ключ для привязки очереди по обработке снятия средств.
+     */
+    public static final String RESERVE_PAYMENT_COMMAND_KEY = "reserve.payment.command";
 
-    public static final String RELEASE_PAYMENT_COMMAND_KEY = "release.payment.command"; // ключ для привязки очереди по обработке начисления средств
-    public static final String PAYMENT_RELEASED_EVENT_KEY = "payment.released.event"; // ключ для отправки ивента, что средства начислены
-    public static final String BILLING_RELEASE_PAYMENT_COMMAND_QUEUE = "billing.release.payment.command.queue"; // очередь по обработке начисления средств
+    /**
+     * Ключ для отправки ивента о том, что средства успешно списаны.
+     */
+    public static final String PAYMENT_RESERVED_EVENT_KEY = "payment.reserved.event";
+
+    /**
+     * Очередь для обработки команды снятия средств.
+     */
+    public static final String BILLING_RESERVE_PAYMENT_COMMAND_QUEUE = "billing.reserve.payment.command.queue";
+
+    /**
+     * Ключ для привязки очереди по обработке начисления средств.
+     */
+    public static final String RELEASE_PAYMENT_COMMAND_KEY = "release.payment.command";
+
+    /**
+     * Ключ для отправки ивента о том, что средства возвращены и начислены обратно.
+     */
+    public static final String PAYMENT_RELEASED_EVENT_KEY = "payment.released.event";
+
+    /**
+     * Очередь для обработки команды начисления (возврата) средств.
+     */
+    public static final String BILLING_RELEASE_PAYMENT_COMMAND_QUEUE = "billing.release.payment.command.queue";
 
     @Bean
     public TopicExchange topicExchange() {
@@ -36,7 +58,7 @@ public class RabbitConfig {
     }
 
     /**
-     * Привязка очереди в биллинг-сервисе на ключ по созданию ордера.
+     * Привязка очереди в биллинг-сервисе на ключ резервирования средств для снятия оплаты по заказу.
      */
     @Bean
     public Binding bindBillingReservePaymentCommandQueueToExchange(Queue billingReservePaymentCommandQueue, TopicExchange topicExchange) {
@@ -46,7 +68,7 @@ public class RabbitConfig {
     }
 
     /**
-     * Привязка очереди в биллинг-сервисе на ключ по созданию ордера.
+     * Привязка очереди в биллинг-сервисе на ключ освобождения средств для возврата оплаты по заказу.
      */
     @Bean
     public Binding bindBillingReleasePaymentCommandQueuerToExchange(Queue billingReleasePaymentCommandQueue, TopicExchange topicExchange) {

@@ -16,15 +16,11 @@ public class SagaManager {
 
     private final SagaStateRepository sagaStateRepository;
 
-    public OrderSagaState getById(UUID id) {
-        return sagaStateRepository.findBySagaId(id)
-                .orElseThrow(() -> new RuntimeException("Saga not found: " + id));
-    }
-
     public Optional<OrderSagaState> getOptById(UUID id) {
         return sagaStateRepository.findBySagaId(id);
     }
 
+    @Transactional
     public void save(OrderSagaState state) {
         sagaStateRepository.save(state);
     }

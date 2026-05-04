@@ -12,13 +12,35 @@ public class RabbitConfig {
      */
     public static final String ORDER_EVENTS_TOPIC_EXCHANGE = "order.events";
 
-    public static final String RESERVE_DELIVERY_COMMAND_KEY = "reserve.delivery.command"; // ключ для привязки очереди назначения курьера по заказу
-    public static final String DELIVERY_RESERVED_EVENT_KEY = "delivery.reserved.event"; // ключ для отправки ивента, что курьер назначен
-    public static final String DELIVERY_RESERVE_COMMAND_QUEUE = "delivery.reserve.command.queue"; // очередь по обработке назначения курьера
+    /**
+     * Ключ для привязки очереди назначения курьера по заказу.
+     */
+    public static final String RESERVE_DELIVERY_COMMAND_KEY = "reserve.delivery.command";
 
-    public static final String RELEASE_DELIVERY_COMMAND_KEY = "release.delivery.command"; // ключ для привязки очереди снятия курьера по заказу
-    public static final String DELIVERY_RELEASED_EVENT_KEY = "delivery.released.event"; // ключ для отправки ивента, что курьер снят с заказа, освобожден
-    public static final String DELIVERY_RELEASE_COMMAND_QUEUE = "delivery.release.command.queue"; // очередь по обработке снятия курьера
+    /**
+     * Ключ для отправки ивента о том, что курьер успешно назначен на заказ.
+     */
+    public static final String DELIVERY_RESERVED_EVENT_KEY = "delivery.reserved.event";
+
+    /**
+     * Очередь для обработки команды назначения курьера.
+     */
+    public static final String DELIVERY_RESERVE_COMMAND_QUEUE = "delivery.reserve.command.queue";
+
+    /**
+     * Ключ для привязки очереди снятия курьера с заказа.
+     */
+    public static final String RELEASE_DELIVERY_COMMAND_KEY = "release.delivery.command";
+
+    /**
+     * Ключ для отправки ивента о том, что курьер освобожден и снят с заказа.
+     */
+    public static final String DELIVERY_RELEASED_EVENT_KEY = "delivery.released.event";
+
+    /**
+     * Очередь для обработки команды снятия курьера с заказа.
+     */
+    public static final String DELIVERY_RELEASE_COMMAND_QUEUE = "delivery.release.command.queue";
 
     @Bean
     public TopicExchange topicExchange() {
@@ -36,7 +58,7 @@ public class RabbitConfig {
     }
 
     /**
-     * Привязка очереди в биллинг-сервисе на ключ по созданию ордера.
+     * Привязка очереди в доставку-сервисе на ключ резервирования курьера для назначения на заказ.
      */
     @Bean
     public Binding bindDeliveryReserveCommandQueueToExchange(Queue deliveryReserveCommandQueue, TopicExchange topicExchange) {
@@ -46,7 +68,7 @@ public class RabbitConfig {
     }
 
     /**
-     * Привязка очереди в биллинг-сервисе на ключ по созданию ордера.
+     * Привязка очереди в доставку-сервисе на ключ освобождения курьера для снятия с заказа.
      */
     @Bean
     public Binding bindDeliveryReleaseCommandQueuerToExchange(Queue deliveryReleaseCommandQueue, TopicExchange topicExchange) {

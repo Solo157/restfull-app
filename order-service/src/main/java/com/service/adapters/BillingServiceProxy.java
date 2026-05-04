@@ -1,5 +1,6 @@
 package com.service.adapters;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.database.Order;
 import com.service.database.OrderRepository;
@@ -16,6 +17,10 @@ import static com.service.config.RabbitConfig.ORDER_EVENTS_TOPIC_EXCHANGE;
 import static com.service.config.RabbitConfig.RELEASE_PAYMENT_COMMAND_KEY;
 import static com.service.config.RabbitConfig.RESERVE_PAYMENT_COMMAND_KEY;
 
+/**
+ * Прокси для отправки команд в billing-service через RabbitMQ.
+ * Отправляет команды на резервирование и возврат средств.
+ */
 @Component
 @RequiredArgsConstructor
 public class BillingServiceProxy {
@@ -24,16 +29,11 @@ public class BillingServiceProxy {
     private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Отправить команду на списание суммы по заказа с аккаунта пользователя.
-     */
     public void sendReservePaymentCommand(OrderSagaState sagaState) {
-        Long orderId = sagaState.getOrderId();
-        Optional<Order> orderOpt = orderRepository.findById(orderId);
-        if (orderOpt.isEmpty()) {
+        Order order = findOrderOrReturn(sagaState.getOrderId());
+        if (order == null) {
             return;
         }
-        Order order = orderOpt.get();
 
         ReservePaymentCommand command = new ReservePaymentCommand(
                 sagaState.getSagaId(),
@@ -43,26 +43,14 @@ public class BillingServiceProxy {
                 UUID.randomUUID().toString()
         );
 
-        try {
-            String payload = objectMapper.writeValueAsString(command);
-
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, RESERVE_PAYMENT_COMMAND_KEY, payload);
-            System.out.println("Message sent");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sendMessage(RESERVE_PAYMENT_COMMAND_KEY, command);
     }
 
-    /**
-     * Отправить команду на возврат суммы по заказу на счет аккаунта пользователя.
-     */
     public void sendReleasePaymentCommand(OrderSagaState sagaState) {
-        Long orderId = sagaState.getOrderId();
-        Optional<Order> orderOpt = orderRepository.findById(orderId);
-        if (orderOpt.isEmpty()) {
+        Order order = findOrderOrReturn(sagaState.getOrderId());
+        if (order == null) {
             return;
         }
-        Order order = orderOpt.get();
 
         ReleasePaymentCommand command = new ReleasePaymentCommand(
                 sagaState.getSagaId(),
@@ -72,12 +60,19 @@ public class BillingServiceProxy {
                 UUID.randomUUID().toString()
         );
 
+        sendMessage(RELEASE_PAYMENT_COMMAND_KEY, command);
+    }
+
+    private Order findOrderOrReturn(Long orderId) {
+        return orderRepository.findById(orderId).orElse(null);
+    }
+
+    private void sendMessage(String routingKey, Object command) {
         try {
             String payload = objectMapper.writeValueAsString(command);
-
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, RELEASE_PAYMENT_COMMAND_KEY, payload);
+            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, routingKey, payload);
             System.out.println("Message sent");
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
     }

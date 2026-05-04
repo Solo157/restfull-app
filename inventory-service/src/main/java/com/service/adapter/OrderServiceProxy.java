@@ -1,5 +1,6 @@
 package com.service.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.adapter.events.InventoryReleasedEvent;
 import com.service.adapter.events.InventoryReservedEvent;
@@ -14,7 +15,8 @@ import static com.service.configuration.RabbitConfig.INVENTORY_RESERVED_EVENT_KE
 import static com.service.configuration.RabbitConfig.ORDER_EVENTS_TOPIC_EXCHANGE;
 
 /**
- * Распределенный адаптер по отправке сообщений. Работает на базе RabbitMQ.
+ * Прокси для отправки событий в order-service через RabbitMQ.
+ * Отправляет события о результате резервирования и освобождения товаров.
  */
 @Service
 @RequiredArgsConstructor
@@ -23,28 +25,19 @@ public class OrderServiceProxy {
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Отправить ивент том, что средства списаны со счета.
-     */
     public void sendInventoryReservedEvent(UUID sagaId, Long orderId, boolean success, String message) {
-        try {
-            String payload = objectMapper.writeValueAsString(new InventoryReservedEvent(sagaId, orderId, success, message));
-
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, INVENTORY_RESERVED_EVENT_KEY, payload);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sendMessage(INVENTORY_RESERVED_EVENT_KEY, new InventoryReservedEvent(sagaId, orderId, success, message));
     }
 
-    /**
-     * Отправить ивент о том, что средства зачислены на счет.
-     */
     public void sendInventoryReleasedEvent(UUID sagaId, Long orderId, boolean success, String message) {
-        try {
-            String payload = objectMapper.writeValueAsString(new InventoryReleasedEvent(sagaId, orderId, success, message));
+        sendMessage(INVENTORY_RELEASED_EVENT_KEY, new InventoryReleasedEvent(sagaId, orderId, success, message));
+    }
 
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, INVENTORY_RELEASED_EVENT_KEY, payload);
-        } catch (Exception e) {
+    private void sendMessage(String routingKey, Object event) {
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, routingKey, payload);
+        } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
     }

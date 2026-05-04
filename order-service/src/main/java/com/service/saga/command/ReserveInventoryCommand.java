@@ -9,14 +9,36 @@ import lombok.NoArgsConstructor;
 
 import java.util.*;
 
+/**
+ * Команда на резервирование товаров на складе в рамках saga-оркестрации заказа.
+ */
 @Data
 @NoArgsConstructor
 public class ReserveInventoryCommand {
 
+    /**
+     * Уникальный идентификатор saga-процесса.
+     */
     private UUID sagaId;
+
+    /**
+     * Идентификатор заказа.
+     */
     private Long orderId;
+
+    /**
+     * Идентификатор пользователя, оформившего заказ.
+     */
     private String userId;
+
+    /**
+     * Список позиций заказа (товары, их цены и количества).
+     */
     private List<OrderItemDTO> items;
+
+    /**
+     * Ключ идемпотентности для защиты от дублирования обработки команды.
+     */
     private String keyIdempotence;
 
     @JsonCreator

@@ -7,14 +7,36 @@ import lombok.NoArgsConstructor;
 
 import java.util.*;
 
+/**
+ * Команда на возврат зарезервированных средств пользователю (компенсация в рамках saga).
+ */
 @Data
 @NoArgsConstructor
 public class ReleasePaymentCommand {
 
+    /**
+     * Уникальный идентификатор saga-процесса.
+     */
     private UUID sagaId;
+
+    /**
+     * Идентификатор заказа.
+     */
     private Long orderId;
+
+    /**
+     * Идентификатор пользователя, оформившего заказ.
+     */
     private String userId;
+
+    /**
+     * Сумма к возврату на аккаунт пользователя.
+     */
     private Integer amount;
+
+    /**
+     * Ключ идемпотентности для защиты от дублирования обработки команды.
+     */
     private String keyIdempotence;
 
     @JsonCreator

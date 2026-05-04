@@ -1,5 +1,6 @@
 package com.service.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.adapter.events.PaymentReleasedEvent;
 import com.service.adapter.events.PaymentReservedEvent;
@@ -12,7 +13,8 @@ import java.util.*;
 import static com.service.configuration.RabbitConfig.*;
 
 /**
- * Распределенный адаптер по отправке сообщений. Работает на базе RabbitMQ.
+ * Прокси для отправки событий в order-service через RabbitMQ.
+ * Отправляет события о результате резервирования и возврата средств.
  */
 @Service
 @RequiredArgsConstructor
@@ -21,28 +23,19 @@ public class OrderServiceProxy {
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Отправить ивент том, что средства списаны со счета.
-     */
     public void sendPaymentReservedEvent(UUID sagaId, Long orderId, boolean success, String message) {
-        try {
-            String payload = objectMapper.writeValueAsString(new PaymentReservedEvent(sagaId, orderId, success, message));
-
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, PAYMENT_RESERVED_EVENT_KEY, payload);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sendMessage(PAYMENT_RESERVED_EVENT_KEY, new PaymentReservedEvent(sagaId, orderId, success, message));
     }
 
-    /**
-     * Отправить ивент о том, что средства зачислены на счет.
-     */
     public void sendPaymentReleasedEvent(UUID sagaId, Long orderId, boolean success, String message) {
-        try {
-            String payload = objectMapper.writeValueAsString(new PaymentReleasedEvent(sagaId, orderId, success, message));
+        sendMessage(PAYMENT_RELEASED_EVENT_KEY, new PaymentReleasedEvent(sagaId, orderId, success, message));
+    }
 
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, PAYMENT_RELEASED_EVENT_KEY, payload);
-        } catch (Exception e) {
+    private void sendMessage(String routingKey, Object event) {
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, routingKey, payload);
+        } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
     }

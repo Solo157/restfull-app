@@ -7,13 +7,31 @@ import lombok.NoArgsConstructor;
 
 import java.util.*;
 
+/**
+ * Команда на освобождение зарезервированного курьера (компенсация в рамках saga).
+ */
 @Data
 @NoArgsConstructor
 public class ReleaseDeliveryCommand {
 
+    /**
+     * Уникальный идентификатор saga-процесса.
+     */
     private UUID sagaId;
+
+    /**
+     * Идентификатор заказа.
+     */
     private Long orderId;
+
+    /**
+     * Идентификатор пользователя, оформившего заказ.
+     */
     private String userId;
+
+    /**
+     * Ключ идемпотентности для защиты от дублирования обработки команды.
+     */
     private String keyIdempotence;
 
     @JsonCreator
@@ -25,6 +43,6 @@ public class ReleaseDeliveryCommand {
         this.orderId = orderId;
         this.userId = userId;
         this.keyIdempotence = keyIdempotence;
-   }
+    }
 
 }

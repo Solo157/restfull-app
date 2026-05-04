@@ -12,13 +12,35 @@ public class RabbitConfig {
      */
     public static final String ORDER_EVENTS_TOPIC_EXCHANGE = "order.events";
 
-    public static final String RESERVE_INVENTORY_COMMAND_KEY = "reserve.inventory.command"; // ключ для привязки очереди резервирования товара
-    public static final String INVENTORY_RESERVED_EVENT_KEY = "inventory.reserved.event"; // ключ для отправки ивента, что товар зарезервирован
-    public static final String INVENTORY_RESERVE_COMMAND_QUEUE = "inventory.reserve.command.queue"; // очередь по обработке резервирования товара
+    /**
+     * Ключ для привязки очереди резервирования товара на складе.
+     */
+    public static final String RESERVE_INVENTORY_COMMAND_KEY = "reserve.inventory.command";
 
-    public static final String RELEASE_INVENTORY_COMMAND_KEY = "release.inventory.command"; // ключ для привязки очереди возврата товара
-    public static final String INVENTORY_RELEASED_EVENT_KEY = "inventory.released.event"; // ключ для отправки ивента, что товар возвращен
-    public static final String INVENTORY_RELEASE_COMMAND_QUEUE = "inventory.release.command.queue"; // очередь по обработке возврата товара
+    /**
+     * Ключ для отправки ивента о том, что товар успешно зарезервирован.
+     */
+    public static final String INVENTORY_RESERVED_EVENT_KEY = "inventory.reserved.event";
+
+    /**
+     * Очередь для обработки команды резервирования товара.
+     */
+    public static final String INVENTORY_RESERVE_COMMAND_QUEUE = "inventory.reserve.command.queue";
+
+    /**
+     * Ключ для привязки очереди возврата товара на склад.
+     */
+    public static final String RELEASE_INVENTORY_COMMAND_KEY = "release.inventory.command";
+
+    /**
+     * Ключ для отправки ивента о том, что товар возвращен и зарезервирование отменено.
+     */
+    public static final String INVENTORY_RELEASED_EVENT_KEY = "inventory.released.event";
+
+    /**
+     * Очередь для обработки команды возврата товара.
+     */
+    public static final String INVENTORY_RELEASE_COMMAND_QUEUE = "inventory.release.command.queue";
 
     @Bean
     public TopicExchange topicExchange() {
@@ -36,7 +58,7 @@ public class RabbitConfig {
     }
 
     /**
-     * Привязка очереди в биллинг-сервисе на ключ по созданию ордера.
+     * Привязка очереди в инвентарный-сервисе на ключ резервирования товара для заказа.
      */
     @Bean
     public Binding bindInventoryReserveCommandQueueToExchange(Queue inventoryReserveCommandQueue, TopicExchange topicExchange) {
@@ -46,7 +68,7 @@ public class RabbitConfig {
     }
 
     /**
-     * Привязка очереди в биллинг-сервисе на ключ по созданию ордера.
+     * Привязка очереди в инвентарный-сервисе на ключ освобождения товара для возврата на склад.
      */
     @Bean
     public Binding bindInventoryReleaseCommandQueuerToExchange(Queue inventoryReleaseCommandQueue, TopicExchange topicExchange) {

@@ -7,14 +7,36 @@ import lombok.NoArgsConstructor;
 
 import java.util.*;
 
+/**
+ * Команда на резервирование средств пользователя, приходящая от order-service в рамках saga.
+ */
 @Data
 @NoArgsConstructor
 public class ReservePaymentCommand {
 
+    /**
+     * Уникальный идентификатор saga-процесса.
+     */
     private UUID sagaId;
+
+    /**
+     * Идентификатор заказа.
+     */
     private Long orderId;
+
+    /**
+     * Идентификатор пользователя, оформившего заказ.
+     */
     private String userId;
+
+    /**
+     * Сумма к списанию с аккаунта пользователя.
+     */
     private Integer amount;
+
+    /**
+     * Ключ идемпотентности для защиты от дублирования обработки команды.
+     */
     private String keyIdempotence;
 
     @JsonCreator

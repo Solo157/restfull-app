@@ -7,13 +7,31 @@ import lombok.NoArgsConstructor;
 
 import java.util.*;
 
+/**
+ * Событие об успешности возврата зарезервированных средств, отправляемое в order-service.
+ */
 @Data
 @NoArgsConstructor
 public class PaymentReleasedEvent {
 
+    /**
+     * Уникальный идентификатор saga-процесса.
+     */
     private UUID sagaId;
+
+    /**
+     * Идентификатор заказа.
+     */
     private Long orderId;
+
+    /**
+     * Флаг успешности операции возврата средств.
+     */
     private boolean success;
+
+    /**
+     * Сообщение с описанием результата операции.
+     */
     private String message;
 
     @JsonCreator

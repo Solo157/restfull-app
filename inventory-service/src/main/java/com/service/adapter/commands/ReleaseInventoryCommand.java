@@ -8,14 +8,36 @@ import lombok.NoArgsConstructor;
 
 import java.util.*;
 
+/**
+ * Команда на освобождение зарезервированных товаров (компенсация), приходящая от order-service.
+ */
 @Data
 @NoArgsConstructor
 public class ReleaseInventoryCommand {
 
+    /**
+     * Уникальный идентификатор saga-процесса.
+     */
     private UUID sagaId;
+
+    /**
+     * Идентификатор заказа.
+     */
     private Long orderId;
+
+    /**
+     * Идентификатор пользователя, оформившего заказ.
+     */
     private String userId;
+
+    /**
+     * Список позиций заказа, которые необходимо вернуть на склад.
+     */
     private List<OrderItemDTO> items;
+
+    /**
+     * Ключ идемпотентности для защиты от дублирования обработки команды.
+     */
     private String keyIdempotence;
 
     @JsonCreator

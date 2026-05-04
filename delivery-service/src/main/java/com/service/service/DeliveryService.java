@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 /**
- * Главный сервис по работе с биллингом.
+ * Главный сервис по работе с доставкой и курьерами.
  */
 @Service
 @RequiredArgsConstructor
@@ -17,6 +17,7 @@ public class DeliveryService {
     private final CourierRepository courierRepository;
     private final DeliveryRepository deliveryRepository;
 
+    @Transactional(readOnly = true)
     public List<Courier> getCouriers() {
         return courierRepository.findAll();
     }
@@ -27,7 +28,7 @@ public class DeliveryService {
     }
 
     /**
-     * Положить деньги на аккаунт.
+     * Назначить курьера на заказ.
      */
     @Transactional
     public boolean assignmentCourierToOrder(Long orderId, List<OrderItem> items, String address) {
@@ -53,7 +54,7 @@ public class DeliveryService {
     }
 
     /**
-     * Снять деньги с аккаунта.
+     * Снять курьера с заказа.
      */
     @Transactional
     public boolean unassignmentCourierToOrder(Long orderId) {

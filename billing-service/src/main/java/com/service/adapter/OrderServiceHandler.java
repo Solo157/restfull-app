@@ -1,5 +1,6 @@
 package com.service.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.adapter.commands.ReleasePaymentCommand;
 import com.service.adapter.commands.ReservePaymentCommand;
@@ -14,7 +15,8 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 /**
- * Обработчик сообщений от RabbitMQ.
+ * Обработчик команд из RabbitMQ для billing-service.
+ * Обрабатывает команды на резервирование и возврат средств пользователя.
  */
 @Component
 @RequiredArgsConstructor
@@ -25,35 +27,20 @@ public class OrderServiceHandler {
     private final OrderServiceProxy orderServiceProxy;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Обработка приходящего сообщения по созданному заказу и поэтому требуется его обработать - снять деньги со счета.
-     */
     @RabbitListener(queues = RabbitConfig.BILLING_RESERVE_PAYMENT_COMMAND_QUEUE)
     public void handleReservePaymentCommand(String messageBody) {
-        ReservePaymentCommand event;
-        try {
-            System.out.println("Received message: " + messageBody);
-            event = objectMapper.readValue(messageBody, ReservePaymentCommand.class);
-            System.out.println("Received event for userId: " + event.getUserId() + ", amount: " + event.getAmount());
-        } catch (Exception e) {
-            e.printStackTrace();
+        ReservePaymentCommand command = deserializeCommand(messageBody, ReservePaymentCommand.class);
+        if (command == null) {
             return;
         }
 
-        final UUID sagaId = event.getSagaId();
-        final Long orderId = event.getOrderId();
-        final String userId = event.getUserId();
-        final Integer amount = event.getAmount();
-        final String idempotencyKey = event.getKeyIdempotence();
+        final UUID sagaId = command.getSagaId();
+        final Long orderId = command.getOrderId();
+        final String userId = command.getUserId();
+        final Integer amount = command.getAmount();
+        final String idempotencyKey = command.getKeyIdempotence();
 
-        try {
-            ProcessedCommand processedCommand = new ProcessedCommand();
-            processedCommand.setSagaId(sagaId);
-            processedCommand.setOrderId(orderId);
-            processedCommand.setIdempotencyKey(idempotencyKey);
-            processedCommandsRepository.save(processedCommand);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (!saveProcessedCommand(sagaId, orderId, idempotencyKey)) {
             return;
         }
 
@@ -63,35 +50,20 @@ public class OrderServiceHandler {
         orderServiceProxy.sendPaymentReservedEvent(sagaId, orderId, withdrawAccount, message);
     }
 
-    /**
-     * Обработка приходящего сообщения по созданному заказу и поэтому требуется его обработать - снять деньги со счета.
-     */
     @RabbitListener(queues = RabbitConfig.BILLING_RELEASE_PAYMENT_COMMAND_QUEUE)
     public void handleReleasePaymentCommand(String messageBody) {
-        ReleasePaymentCommand event;
-        try {
-            System.out.println("Received message: " + messageBody);
-            event = objectMapper.readValue(messageBody, ReleasePaymentCommand.class);
-            System.out.println("Received event for userId: " + event.getUserId() + ", amount: " + event.getAmount());
-        } catch (Exception e) {
-            e.printStackTrace();
+        ReleasePaymentCommand command = deserializeCommand(messageBody, ReleasePaymentCommand.class);
+        if (command == null) {
             return;
         }
 
-        final UUID sagaId = event.getSagaId();
-        final Long orderId = event.getOrderId();
-        final String userId = event.getUserId();
-        final Integer amount = event.getAmount();
-        final String idempotencyKey = event.getKeyIdempotence();
+        final UUID sagaId = command.getSagaId();
+        final Long orderId = command.getOrderId();
+        final String userId = command.getUserId();
+        final Integer amount = command.getAmount();
+        final String idempotencyKey = command.getKeyIdempotence();
 
-        try {
-            ProcessedCommand processedCommand = new ProcessedCommand();
-            processedCommand.setSagaId(sagaId);
-            processedCommand.setOrderId(orderId);
-            processedCommand.setIdempotencyKey(idempotencyKey);
-            processedCommandsRepository.save(processedCommand);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (!saveProcessedCommand(sagaId, orderId, idempotencyKey)) {
             return;
         }
 
@@ -99,6 +71,44 @@ public class OrderServiceHandler {
 
         String message = depositAccount ? "cash for order released" : "cash for order is not released";
         orderServiceProxy.sendPaymentReleasedEvent(sagaId, orderId, depositAccount, message);
+    }
+
+    private <T> T deserializeCommand(String messageBody, Class<T> commandType) {
+        System.out.println("Received message: " + messageBody);
+        try {
+            T cmd = objectMapper.readValue(messageBody, commandType);
+            System.out.println("Received event for userId: " + extractUserId(cmd) + ", amount: " + extractAmount(cmd));
+            return cmd;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String extractUserId(Object cmd) {
+        if (cmd instanceof ReservePaymentCommand) return ((ReservePaymentCommand) cmd).getUserId();
+        if (cmd instanceof ReleasePaymentCommand) return ((ReleasePaymentCommand) cmd).getUserId();
+        return "unknown";
+    }
+
+    private Integer extractAmount(Object cmd) {
+        if (cmd instanceof ReservePaymentCommand) return ((ReservePaymentCommand) cmd).getAmount();
+        if (cmd instanceof ReleasePaymentCommand) return ((ReleasePaymentCommand) cmd).getAmount();
+        return 0;
+    }
+
+    private boolean saveProcessedCommand(UUID sagaId, Long orderId, String idempotencyKey) {
+        try {
+            ProcessedCommand processedCommand = new ProcessedCommand();
+            processedCommand.setSagaId(sagaId);
+            processedCommand.setOrderId(orderId);
+            processedCommand.setIdempotencyKey(idempotencyKey);
+            processedCommandsRepository.save(processedCommand);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
 }

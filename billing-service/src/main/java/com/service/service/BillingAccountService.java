@@ -17,6 +17,7 @@ public class BillingAccountService {
 
     private final AccountRepository accountRepository;
 
+    @Transactional(readOnly = true)
     public Account getAccount(String userId) {
         Optional<Account> userAccountOpt = accountRepository.findByUserId(userId);
         return userAccountOpt.orElse(null);
@@ -25,6 +26,7 @@ public class BillingAccountService {
     /**
      * Создать аккаунт для пользователя.
      */
+    @Transactional
     public void createAccount(String userId) {
         Account account = new Account();
         account.setUserId(userId);

@@ -19,11 +19,11 @@ public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
 
+    @Transactional(readOnly = true)
     public List<Inventory> getInventory() {
         return inventoryRepository.findAll();
     }
 
-    @Transactional
     public void replenishInventory(List<OrderItemDTO> itemDTOS) {
         for (OrderItemDTO itemDTO: itemDTOS) {
             boolean reduced = replenishInventory(itemDTO.getProductName(), itemDTO.getCount());

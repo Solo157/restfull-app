@@ -1,13 +1,12 @@
 package com.service.adapters;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.service.api.dto.OrderDTO;
 import com.service.database.Order;
 import com.service.database.OrderRepository;
-import com.service.saga.KeyIdempotence;
 import com.service.saga.OrderSagaState;
-import com.service.saga.command.*;
-import com.service.service.OrderManagerService;
+import com.service.saga.command.ReleaseInventoryCommand;
+import com.service.saga.command.ReserveInventoryCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
@@ -16,6 +15,10 @@ import java.util.*;
 
 import static com.service.config.RabbitConfig.*;
 
+/**
+ * Прокси для отправки команд в inventory-service через RabbitMQ.
+ * Отправляет команды на резервирование и освобождение товаров на складе.
+ */
 @Component
 @RequiredArgsConstructor
 public class InventoryServiceProxy {
@@ -24,19 +27,11 @@ public class InventoryServiceProxy {
     private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Отправить команду на списание суммы по заказа с аккаунта пользователя.
-     */
     public void sendReserveInventoryCommand(OrderSagaState sagaState) {
-        Optional<Order> orderOpt = orderRepository.findOrderById(sagaState.getOrderId())
-                .stream()
-                .filter(order -> order.getId().equals(sagaState.getOrderId()))
-                .findFirst();
-        if (orderOpt.isEmpty()) {
+        Order order = findOrderOrReturn(sagaState.getOrderId());
+        if (order == null) {
             return;
         }
-
-        Order order = orderOpt.get();
 
         ReserveInventoryCommand command = new ReserveInventoryCommand(
                 sagaState.getSagaId(),
@@ -46,29 +41,14 @@ public class InventoryServiceProxy {
                 UUID.randomUUID().toString()
         );
 
-        try {
-            String payload = objectMapper.writeValueAsString(command);
-
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, RESERVE_INVENTORY_COMMAND_KEY, payload);
-            System.out.println("Message sent");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sendMessage(RESERVE_INVENTORY_COMMAND_KEY, command);
     }
 
-    /**
-     * Отправить команду на возврат суммы по заказу на счет аккаунта пользователя.
-     */
     public void sendReleaseInventoryCommand(OrderSagaState sagaState) {
-        Optional<Order> orderOpt = orderRepository.findOrderById(sagaState.getOrderId())
-                .stream()
-                .filter(order -> order.getId().equals(sagaState.getOrderId()))
-                .findFirst();
-        if (orderOpt.isEmpty()) {
+        Order order = findOrderOrReturn(sagaState.getOrderId());
+        if (order == null) {
             return;
         }
-
-        Order order = orderOpt.get();
 
         ReleaseInventoryCommand command = new ReleaseInventoryCommand(
                 sagaState.getSagaId(),
@@ -78,12 +58,23 @@ public class InventoryServiceProxy {
                 UUID.randomUUID().toString()
         );
 
+        sendMessage(RELEASE_INVENTORY_COMMAND_KEY, command);
+    }
+
+    private Order findOrderOrReturn(Long orderId) {
+        return orderRepository.findOrderById(orderId)
+                .stream()
+                .filter(order -> order.getId().equals(orderId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void sendMessage(String routingKey, Object command) {
         try {
             String payload = objectMapper.writeValueAsString(command);
-
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, RELEASE_INVENTORY_COMMAND_KEY, payload);
+            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, routingKey, payload);
             System.out.println("Message sent");
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
     }
