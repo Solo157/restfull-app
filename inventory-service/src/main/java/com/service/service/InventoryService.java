@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 /**
- * Главный сервис по работе с биллингом.
+ * Главный сервис по работе со складом.
  */
 @Service
 @RequiredArgsConstructor
@@ -24,6 +24,7 @@ public class InventoryService {
         return inventoryRepository.findAll();
     }
 
+    @Transactional
     public void replenishInventory(List<OrderItemDTO> itemDTOS) {
         for (OrderItemDTO itemDTO: itemDTOS) {
             boolean reduced = replenishInventory(itemDTO.getProductName(), itemDTO.getCount());
@@ -34,7 +35,7 @@ public class InventoryService {
     }
 
     /**
-     * Положить деньги на аккаунт.
+     * Пополнить склад товаром.
      */
     @Transactional
     public boolean replenishInventory(String productName, Integer count) {
@@ -54,6 +55,9 @@ public class InventoryService {
         return true;
     }
 
+    /**
+     * Уменьшить склад товаром.
+     */
     @Transactional
     public void reduceInventory(List<OrderItemDTO> itemDTOS) {
         for (OrderItemDTO itemDTO: itemDTOS) {

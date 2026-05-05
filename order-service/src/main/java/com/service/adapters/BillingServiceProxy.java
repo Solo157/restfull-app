@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.database.Order;
 import com.service.database.OrderRepository;
-import com.service.saga.OrderSagaState;
+import com.service.database.OrderSagaState;
 import com.service.saga.command.ReleasePaymentCommand;
 import com.service.saga.command.ReservePaymentCommand;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class BillingServiceProxy {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public void sendReservePaymentCommand(OrderSagaState sagaState) {
-        Order order = findOrderOrReturn(sagaState.getOrderId());
+        Order order = findOrder(sagaState.getOrderId());
         if (order == null) {
             return;
         }
@@ -47,7 +47,7 @@ public class BillingServiceProxy {
     }
 
     public void sendReleasePaymentCommand(OrderSagaState sagaState) {
-        Order order = findOrderOrReturn(sagaState.getOrderId());
+        Order order = findOrder(sagaState.getOrderId());
         if (order == null) {
             return;
         }
@@ -63,15 +63,16 @@ public class BillingServiceProxy {
         sendMessage(RELEASE_PAYMENT_COMMAND_KEY, command);
     }
 
-    private Order findOrderOrReturn(Long orderId) {
+    private Order findOrder(Long orderId) {
         return orderRepository.findById(orderId).orElse(null);
     }
 
     private void sendMessage(String routingKey, Object command) {
+        System.out.println("Message sent" + command);
+
         try {
             String payload = objectMapper.writeValueAsString(command);
             rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, routingKey, payload);
-            System.out.println("Message sent");
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

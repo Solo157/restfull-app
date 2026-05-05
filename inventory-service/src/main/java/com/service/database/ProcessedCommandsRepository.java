@@ -8,6 +8,4 @@ import java.util.*;
 @Repository
 public interface ProcessedCommandsRepository extends JpaRepository<ProcessedCommand, UUID> {
 
-    List<ProcessedCommand> findAllBySagaIdAndOrderId(UUID sagaId, Long orderId);
-
 }

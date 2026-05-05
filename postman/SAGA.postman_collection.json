@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "a9969900-ce92-4f01-9d9d-8325d6f7617d",
-		"name": "Auth Service Tests RESTFULL",
+		"_postman_id": "843bb78a-88cd-475b-a3fe-541876f99722",
+		"name": "SAGA",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "17002247"
 	},
@@ -226,7 +226,7 @@
 			"response": []
 		},
 		{
-			"name": "showUserMoneyAfterDeposit",
+			"name": "showUserMoney",
 			"event": [
 				{
 					"listen": "test",
@@ -237,6 +237,293 @@
 							"   const userId = pm.environment.get(\"userId\");",
 							"   pm.expect(pm.response.json().userId).to.eql(userId);",
 							"   pm.expect(pm.response.json().amount == 100).to.be.true;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token1}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/billing/v1/account?userId={{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"billing",
+						"v1",
+						"account"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "{{userId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addCourier",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Deposit\", function () {",
+							"   pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"Pizza Margherita\",\n      \"price\": 5\n    },\n    {\n      \"productName\": \"Coca-Cola\",\n      \"price\": 5\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/delivery/v1/delivery/courier",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"delivery",
+						"v1",
+						"delivery",
+						"courier"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addInventory",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Add product to inventory\", function () {",
+							"   pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productName\": \"table\",\n  \"count\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/inventory/v1/inventory/replenish",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"inventory",
+						"v1",
+						"inventory",
+						"replenish"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createOrder",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Create order with delay\", function (done) {",
+							"    pm.response.to.have.status(200);",
+							"    // задержка нужна при первом вызове",
+							"    setTimeout(function () {",
+							"        done();",
+							"    }, 500);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"table\",\n      \"price\": 2,\n      \"count\": 2\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/order/v1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"order",
+						"v1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getInventory",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User has 0 amount\", function () {",
+							"   const json = pm.response.json();",
+							"",
+							"   pm.response.to.have.status(200);",
+							"   pm.expect(json[0].productName).to.eql(\"table\");",
+							"   pm.expect(json[0].count).to.eql(0);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productName\": \"table\",\n  \"count\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/inventory/v1/inventory",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"inventory",
+						"v1",
+						"inventory"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "showUserMoney",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Show user money. User amount not changed\", function () {",
+							"   pm.response.to.have.status(200);",
+							"   const userId = pm.environment.get(\"userId\");",
+							"   pm.expect(pm.response.json().userId).to.eql(userId);",
+							"   pm.expect(pm.response.json().amount == 96).to.be.true;",
 							"});"
 						],
 						"type": "text/javascript",
@@ -296,7 +583,7 @@
 							"    // задержка нужна при первом вызове",
 							"    setTimeout(function () {",
 							"        done();",
-							"    }, 300);",
+							"    }, 500);",
 							"});"
 						],
 						"type": "text/javascript",
@@ -320,7 +607,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"Pizza Margherita\",\n      \"price\": 5\n    },\n    {\n      \"productName\": \"Coca-Cola\",\n      \"price\": 5\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
+					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"table\",\n      \"price\": 2,\n      \"count\": 2\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -342,17 +629,18 @@
 			"response": []
 		},
 		{
-			"name": "showUserMoneyCreatingOrder",
+			"name": "getInventory",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Show user money creating order\", function () {",
+							"pm.test(\"User has 0 amount\", function () {",
+							"   const json = pm.response.json();",
+							"",
 							"   pm.response.to.have.status(200);",
-							"   const userId = pm.environment.get(\"userId\");",
-							"   pm.expect(pm.response.json().userId).to.eql(userId);",
-							"   pm.expect(pm.response.json().amount == 90).to.be.true;",
+							"   pm.expect(json[0].productName).to.eql(\"table\");",
+							"   pm.expect(json[0].count).to.eql(0);",
 							"});"
 						],
 						"type": "text/javascript",
@@ -361,6 +649,9 @@
 					}
 				}
 			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -373,122 +664,10 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token1}}"
-					}
-				],
-				"url": {
-					"raw": "{{baseUrl}}/api/billing/v1/account?userId={{userId}}",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"api",
-						"billing",
-						"v1",
-						"account"
-					],
-					"query": [
-						{
-							"key": "userId",
-							"value": "{{userId}}"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "show user notifications",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Show user notifications. There are two messages\", function () {",
-							"   pm.response.to.have.status(200);",
-							"   const jsonData = pm.response.json();",
-							"",
-							"   pm.expect(jsonData).to.be.an('array');",
-							"",
-							"   pm.expect(jsonData.some(item => item.message === \"Order is paid and completed.\")).to.be.true;",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{access_token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/api/notification/v1/notifications/{{userId}}/messages",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"api",
-						"notification",
-						"v1",
-						"notifications",
-						"{{userId}}",
-						"messages"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "createOrderWithBigAmount",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Create order with delay\", function (done) {",
-							"    pm.response.to.have.status(200);",
-							"    // задержка нужна при первом вызове",
-							"    setTimeout(function () {",
-							"        done();",
-							"    }, 300);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{access_token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"Pizza Margherita\",\n      \"price\": 15000\n    },\n    {\n      \"productName\": \"Coca-Cola\",\n      \"price\": 3\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-89\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
+					"raw": "{\n  \"productName\": \"table\",\n  \"count\": 2\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -496,14 +675,15 @@
 					}
 				},
 				"url": {
-					"raw": "{{baseUrl}}/api/order/v1",
+					"raw": "{{baseUrl}}/api/inventory/v1/inventory",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
 						"api",
-						"order",
-						"v1"
+						"inventory",
+						"v1",
+						"inventory"
 					]
 				}
 			},
@@ -520,7 +700,239 @@
 							"   pm.response.to.have.status(200);",
 							"   const userId = pm.environment.get(\"userId\");",
 							"   pm.expect(pm.response.json().userId).to.eql(userId);",
-							"   pm.expect(pm.response.json().amount == 90).to.be.true;",
+							"   pm.expect(pm.response.json().amount == 96).to.be.true;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token1}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/billing/v1/account?userId={{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"billing",
+						"v1",
+						"account"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "{{userId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addInventory",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Deposit\", function () {",
+							"   pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productName\": \"table\",\n  \"count\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/inventory/v1/inventory/replenish",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"inventory",
+						"v1",
+						"inventory",
+						"replenish"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createOrder",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Create order with delay\", function (done) {",
+							"    pm.response.to.have.status(200);",
+							"    // задержка нужна при первом вызове",
+							"    setTimeout(function () {",
+							"        done();",
+							"    }, 500);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"table\",\n      \"price\": 2,\n      \"count\": 2\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/order/v1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"order",
+						"v1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getInventory",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User has 0 amount\", function () {",
+							"   const json = pm.response.json();",
+							"",
+							"   pm.response.to.have.status(200);",
+							"   pm.expect(json[0].productName).to.eql(\"table\");",
+							"   pm.expect(json[0].count).to.eql(2);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productName\": \"table\",\n  \"count\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/inventory/v1/inventory",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"inventory",
+						"v1",
+						"inventory"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "showUserMoney",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Show user money. User amount not changed\", function () {",
+							"   pm.response.to.have.status(200);",
+							"   const userId = pm.environment.get(\"userId\");",
+							"   pm.expect(pm.response.json().userId).to.eql(userId);",
+							"   pm.expect(pm.response.json().amount == 96).to.be.true;",
 							"});"
 						],
 						"type": "text/javascript",
@@ -579,10 +991,13 @@
 							"   pm.response.to.have.status(200);",
 							"   const jsonData = pm.response.json();",
 							"",
+							"   // Проверка, что ответ — массив",
 							"   pm.expect(jsonData).to.be.an('array');",
 							"",
-							"   pm.expect(jsonData.some(item => item.message === \"Order is paid and completed.\")).to.be.true;",
-							"   pm.expect(jsonData.some(item => item.message === \"Order is cancelled because account not enough money.\")).to.be.true;",
+							"   // Или более точная проверка наличия конкретного объекта",
+							"   pm.expect(jsonData.some(item => item.message === \"order completed\")).to.be.true;",
+							"   pm.expect(jsonData.some(item => item.message === \"inventory for order is not reserved\")).to.be.true;",
+							"   pm.expect(jsonData.some(item => item.message === \"courier is not assigment\")).to.be.true;",
 							"});"
 						],
 						"type": "text/javascript",

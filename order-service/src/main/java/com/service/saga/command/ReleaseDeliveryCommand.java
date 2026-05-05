@@ -8,14 +8,14 @@ import lombok.NoArgsConstructor;
 import java.util.*;
 
 /**
- * Команда на освобождение зарезервированного курьера (компенсация в рамках saga).
+ * Команда на освобождение зарезервированного курьера.
  */
 @Data
 @NoArgsConstructor
 public class ReleaseDeliveryCommand {
 
     /**
-     * Уникальный идентификатор saga-процесса.
+     * Уникальный идентификатор saga.
      */
     private UUID sagaId;
 

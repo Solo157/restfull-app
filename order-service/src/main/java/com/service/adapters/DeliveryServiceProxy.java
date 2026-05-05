@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.database.Order;
 import com.service.database.OrderRepository;
-import com.service.saga.OrderSagaState;
+import com.service.database.OrderSagaState;
 import com.service.saga.command.ReleaseDeliveryCommand;
 import com.service.saga.command.ReserveDeliveryCommand;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class DeliveryServiceProxy {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public void sendReserveDeliveryCommand(OrderSagaState sagaState) {
-        Order order = findOrderOrReturn(sagaState.getOrderId());
+        Order order = findOrder(sagaState.getOrderId());
         if (order == null) {
             return;
         }
@@ -56,7 +56,7 @@ public class DeliveryServiceProxy {
         sendMessage(RELEASE_DELIVERY_COMMAND_KEY, command);
     }
 
-    private Order findOrderOrReturn(Long orderId) {
+    private Order findOrder(Long orderId) {
         return orderRepository.findById(orderId).orElse(null);
     }
 

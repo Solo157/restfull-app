@@ -1,5 +1,6 @@
 package com.service.api;
 
+import com.service.adapter.OrderItemDTO;
 import com.service.database.OrderItem;
 import lombok.Data;
 
@@ -9,7 +10,7 @@ import java.util.*;
 public class DeliveryRequest {
 
     private Long orderId;
-    private List<OrderItem> items;
+    private List<OrderItemDTO> items;
     private String address;
 
 }

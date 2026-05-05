@@ -16,7 +16,7 @@ import java.util.*;
 public class ReserveInventoryCommand {
 
     /**
-     * Уникальный идентификатор saga-процесса.
+     * Уникальный идентификатор saga.
      */
     private UUID sagaId;
 

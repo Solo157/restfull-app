@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.database.Order;
 import com.service.database.OrderRepository;
-import com.service.saga.OrderSagaState;
+import com.service.database.OrderSagaState;
 import com.service.saga.command.ReleaseInventoryCommand;
 import com.service.saga.command.ReserveInventoryCommand;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class InventoryServiceProxy {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public void sendReserveInventoryCommand(OrderSagaState sagaState) {
-        Order order = findOrderOrReturn(sagaState.getOrderId());
+        Order order = findOrder(sagaState.getOrderId());
         if (order == null) {
             return;
         }
@@ -45,7 +45,7 @@ public class InventoryServiceProxy {
     }
 
     public void sendReleaseInventoryCommand(OrderSagaState sagaState) {
-        Order order = findOrderOrReturn(sagaState.getOrderId());
+        Order order = findOrder(sagaState.getOrderId());
         if (order == null) {
             return;
         }
@@ -61,12 +61,8 @@ public class InventoryServiceProxy {
         sendMessage(RELEASE_INVENTORY_COMMAND_KEY, command);
     }
 
-    private Order findOrderOrReturn(Long orderId) {
-        return orderRepository.findOrderById(orderId)
-                .stream()
-                .filter(order -> order.getId().equals(orderId))
-                .findFirst()
-                .orElse(null);
+    private Order findOrder(Long orderId) {
+        return orderRepository.findById(orderId).orElse(null);
     }
 
     private void sendMessage(String routingKey, Object command) {

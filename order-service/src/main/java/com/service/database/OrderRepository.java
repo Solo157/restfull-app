@@ -8,8 +8,6 @@ import java.util.*;
 @Repository
 public interface OrderRepository extends CrudRepository<Order, Long> {
 
-    Optional<Order> findOrderById(Long id);
-
     Optional<Order> findOrderByUserId(String userId);
 
 }

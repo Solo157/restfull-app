@@ -3,13 +3,9 @@ package com.service.service;
 import com.service.adapters.BillingServiceProxy;
 import com.service.adapters.NotificationServiceProxy;
 import com.service.api.dto.OrderDTO;
-import com.service.api.dto.OrderItemDTO;
-import com.service.database.Order;
-import com.service.database.OrderRepository;
-import com.service.database.OrderStatus;
+import com.service.database.*;
 import com.service.mapper.OrderMapper;
-import com.service.saga.OrderSagaState;
-import com.service.saga.SagaStatus;
+import com.service.saga.OrderSagaStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,7 +52,7 @@ public class OrderManagerService {
                 orderDTO.getUserId(),
                 orderAmount
         );
-        startSagaState.setSagaStatus(SagaStatus.IN_PROGRESS);
+        startSagaState.setOrderSagaStatus(OrderSagaStatus.IN_PROGRESS);
         sagaManager.save(startSagaState);
 
         billingServiceProxy.sendReservePaymentCommand(startSagaState);

@@ -11,11 +11,12 @@ import com.service.service.BillingAccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 /**
- * Обработчик команд из RabbitMQ для billing-service.
+ * Обработчик команд из RabbitMQ от order-service.
  * Обрабатывает команды на резервирование и возврат средств пользователя.
  */
 @Component
@@ -29,6 +30,8 @@ public class OrderServiceHandler {
 
     @RabbitListener(queues = RabbitConfig.BILLING_RESERVE_PAYMENT_COMMAND_QUEUE)
     public void handleReservePaymentCommand(String messageBody) {
+        System.out.println("Received message: " + messageBody);
+
         ReservePaymentCommand command = deserializeCommand(messageBody, ReservePaymentCommand.class);
         if (command == null) {
             return;
@@ -41,17 +44,19 @@ public class OrderServiceHandler {
         final String idempotencyKey = command.getKeyIdempotence();
 
         if (!saveProcessedCommand(sagaId, orderId, idempotencyKey)) {
+            orderServiceProxy.sendPaymentReservedEvent(sagaId, orderId, false, "reserved command command already done");
             return;
         }
 
         boolean withdrawAccount = billingAccountService.withdrawAccount(userId, amount);
-
         String message = withdrawAccount ? "cash for order reserved" : "cash for order is not reserved";
         orderServiceProxy.sendPaymentReservedEvent(sagaId, orderId, withdrawAccount, message);
     }
 
     @RabbitListener(queues = RabbitConfig.BILLING_RELEASE_PAYMENT_COMMAND_QUEUE)
     public void handleReleasePaymentCommand(String messageBody) {
+        System.out.println("Received message: " + messageBody);
+
         ReleasePaymentCommand command = deserializeCommand(messageBody, ReleasePaymentCommand.class);
         if (command == null) {
             return;
@@ -64,40 +69,26 @@ public class OrderServiceHandler {
         final String idempotencyKey = command.getKeyIdempotence();
 
         if (!saveProcessedCommand(sagaId, orderId, idempotencyKey)) {
+            orderServiceProxy.sendPaymentReleasedEvent(sagaId, orderId, false, "released command already done");
             return;
         }
 
         boolean depositAccount = billingAccountService.depositAccount(userId, amount);
-
         String message = depositAccount ? "cash for order released" : "cash for order is not released";
         orderServiceProxy.sendPaymentReleasedEvent(sagaId, orderId, depositAccount, message);
     }
 
     private <T> T deserializeCommand(String messageBody, Class<T> commandType) {
-        System.out.println("Received message: " + messageBody);
         try {
-            T cmd = objectMapper.readValue(messageBody, commandType);
-            System.out.println("Received event for userId: " + extractUserId(cmd) + ", amount: " + extractAmount(cmd));
-            return cmd;
+            return objectMapper.readValue(messageBody, commandType);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    private String extractUserId(Object cmd) {
-        if (cmd instanceof ReservePaymentCommand) return ((ReservePaymentCommand) cmd).getUserId();
-        if (cmd instanceof ReleasePaymentCommand) return ((ReleasePaymentCommand) cmd).getUserId();
-        return "unknown";
-    }
-
-    private Integer extractAmount(Object cmd) {
-        if (cmd instanceof ReservePaymentCommand) return ((ReservePaymentCommand) cmd).getAmount();
-        if (cmd instanceof ReleasePaymentCommand) return ((ReleasePaymentCommand) cmd).getAmount();
-        return 0;
-    }
-
-    private boolean saveProcessedCommand(UUID sagaId, Long orderId, String idempotencyKey) {
+    @Transactional
+    public boolean saveProcessedCommand(UUID sagaId, Long orderId, String idempotencyKey) {
         try {
             ProcessedCommand processedCommand = new ProcessedCommand();
             processedCommand.setSagaId(sagaId);

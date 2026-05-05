@@ -8,14 +8,14 @@ import lombok.NoArgsConstructor;
 import java.util.*;
 
 /**
- * Команда на резервирование средств пользователя для оплаты заказа в рамках saga-оркестрации.
+ * Команда на резервирование средств пользователя для оплаты заказа.
  */
 @Data
 @NoArgsConstructor
 public class ReservePaymentCommand {
 
     /**
-     * Уникальный идентификатор saga-процесса.
+     * Уникальный идентификатор saga.
      */
     private UUID sagaId;
 

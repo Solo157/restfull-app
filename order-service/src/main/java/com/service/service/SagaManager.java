@@ -1,9 +1,9 @@
 package com.service.service;
 
+import com.service.database.OrderSagaState;
 import com.service.database.SagaStateRepository;
-import com.service.saga.OrderSagaState;
-import com.service.saga.SagaStatus;
-import com.service.saga.SagaStep;
+import com.service.saga.OrderSagaStatus;
+import com.service.saga.OrderSagaStep;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,8 +34,8 @@ public class SagaManager {
                 sagaId,
                 orderId,
                 userId,
-                SagaStatus.STARTED,
-                SagaStep.PAYMENT,
+                OrderSagaStatus.STARTED,
+                OrderSagaStep.PAYMENT,
                 new LinkedList<>(),
                 "",
                 new Date(),

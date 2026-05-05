@@ -23,6 +23,8 @@ public class SagaEventHandlers {
 
     @RabbitListener(queues = RabbitConfig.PAYMENT_RESERVED_COMMAND_QUEUE)
     public void handlePaymentReserved(String messageBody) {
+        System.out.println("Received message: " + messageBody);
+
         PaymentReservedEvent event = deserializeEvent(messageBody, PaymentReservedEvent.class);
         if (event == null) {
             return;
@@ -38,16 +40,21 @@ public class SagaEventHandlers {
 
     @RabbitListener(queues = RabbitConfig.PAYMENT_RELEASED_COMMAND_QUEUE)
     public void handlePaymentReleased(String messageBody) {
+        System.out.println("Received message: " + messageBody);
+
         PaymentReleasedEvent event = deserializeEvent(messageBody, PaymentReleasedEvent.class);
         if (event == null) {
             return;
         }
 
+        // т.к. это последний коспенсирующий шаг в саге, то должны завершать неудачную сагу.
         sagaCoordinator.completeFailedSaga(event.getSagaId());
     }
 
     @RabbitListener(queues = RabbitConfig.INVENTORY_RESERVED_QUEUE)
     public void handleInventoryReserved(String messageBody) {
+        System.out.println("Received message: " + messageBody);
+
         InventoryReservedEvent event = deserializeEvent(messageBody, InventoryReservedEvent.class);
         if (event == null) {
             return;
@@ -62,16 +69,20 @@ public class SagaEventHandlers {
 
     @RabbitListener(queues = RabbitConfig.INVENTORY_RELEASED_COMMAND_QUEUE)
     public void handleInventoryReleased(String messageBody) {
+        System.out.println("Received message: " + messageBody);
+
         InventoryReleasedEvent event = deserializeEvent(messageBody, InventoryReleasedEvent.class);
         if (event == null) {
             return;
         }
 
-        sagaCoordinator.sendCompensationCommand(event.getSagaId(), SagaStep.PAYMENT);
+        sagaCoordinator.sendCompensationCommand(event.getSagaId(), OrderSagaStep.PAYMENT);
     }
 
     @RabbitListener(queues = RabbitConfig.DELIVERY_RESERVED_COMMAND_QUEUE)
     public void handleDeliveryReserved(String messageBody) {
+        System.out.println("Received message: " + messageBody);
+
         DeliveryReservedEvent event = deserializeEvent(messageBody, DeliveryReservedEvent.class);
         if (event == null) {
             return;
@@ -86,34 +97,23 @@ public class SagaEventHandlers {
 
     @RabbitListener(queues = RabbitConfig.DELIVERY_RELEASED_COMMAND_QUEUE)
     public void handleDeliveryReleased(String messageBody) {
+        System.out.println("Received message: " + messageBody);
+
         DeliveryReleasedEvent event = deserializeEvent(messageBody, DeliveryReleasedEvent.class);
         if (event == null) {
             return;
         }
 
-        sagaCoordinator.sendCompensationCommand(event.getSagaId(), SagaStep.INVENTORY);
+        sagaCoordinator.sendCompensationCommand(event.getSagaId(), OrderSagaStep.INVENTORY);
     }
 
     private <T> T deserializeEvent(String messageBody, Class<T> eventType) {
-        System.out.println("Received message: " + messageBody);
         try {
-            T event = objectMapper.readValue(messageBody, eventType);
-            System.out.println("Received event for sagaId: " + extractSagaId(event));
-            return event;
+            return objectMapper.readValue(messageBody, eventType);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return null;
         }
-    }
-
-    private String extractSagaId(Object event) {
-        if (event instanceof PaymentReservedEvent) return ((PaymentReservedEvent) event).getSagaId().toString();
-        if (event instanceof PaymentReleasedEvent) return ((PaymentReleasedEvent) event).getSagaId().toString();
-        if (event instanceof InventoryReservedEvent) return ((InventoryReservedEvent) event).getSagaId().toString();
-        if (event instanceof InventoryReleasedEvent) return ((InventoryReleasedEvent) event).getSagaId().toString();
-        if (event instanceof DeliveryReservedEvent) return ((DeliveryReservedEvent) event).getSagaId().toString();
-        if (event instanceof DeliveryReleasedEvent) return ((DeliveryReleasedEvent) event).getSagaId().toString();
-        return "unknown";
     }
 
 }

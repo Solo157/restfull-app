@@ -3,6 +3,7 @@ package com.service.saga;
 import com.service.adapters.BillingServiceProxy;
 import com.service.adapters.DeliveryServiceProxy;
 import com.service.adapters.InventoryServiceProxy;
+import com.service.database.OrderSagaState;
 import com.service.service.OrderManagerService;
 import com.service.service.SagaManager;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+/**
+ * Сервис координации саг.
+ */
 @Service
 @RequiredArgsConstructor
 public class SagaCoordinator {
@@ -22,7 +26,7 @@ public class SagaCoordinator {
     private final OrderManagerService orderManagerService;
 
     /**
-     * Переход к следующему шагу саги
+     * Переход к следующему шагу саги.
      */
     @Transactional
     public void advanceToNextStep(UUID sagaId) {
@@ -33,12 +37,12 @@ public class SagaCoordinator {
 
         OrderSagaState state = orderSagaStateOpt.get();
 
-        if (state.getSagaStatus() != SagaStatus.IN_PROGRESS) {
+        if (state.getOrderSagaStatus() != OrderSagaStatus.IN_PROGRESS) {
             throw new IllegalStateException("Saga is not in progress");
         }
 
-        SagaStep nextStep = state.getCurrentStep().getNextStep();
-        if (nextStep == null || nextStep == SagaStep.COMPLETED) {
+        OrderSagaStep nextStep = state.getCurrentStep().getNextStep();
+        if (nextStep == null || nextStep == OrderSagaStep.COMPLETED) {
             completeSuccessfulSaga(state);
             return;
         }
@@ -52,17 +56,23 @@ public class SagaCoordinator {
         sendCommandForStep(state);
     }
 
+    /**
+     * Завершить сагу успешно.
+     */
     @Transactional
     public void completeSuccessfulSaga(OrderSagaState sagaState) {
         sagaState.getCompletedSteps().add(sagaState.getCurrentStep());
-        sagaState.setSagaStatus(SagaStatus.COMPLETED);
-        sagaState.setCurrentStep(SagaStep.COMPLETED);
+        sagaState.setOrderSagaStatus(OrderSagaStatus.COMPLETED);
+        sagaState.setCurrentStep(OrderSagaStep.COMPLETED);
         sagaState.setUpdatedAt(new Date());
 
         sagaManager.save(sagaState);
         orderManagerService.completeOrder(sagaState.getOrderId(), "order completed");
     }
 
+    /**
+     * Завершить сагу неудачей.
+     */
     public void completeFailedSaga(UUID sagaId) {
         Optional<OrderSagaState> orderSagaStateOpt = sagaManager.getOptById(sagaId);
         if (orderSagaStateOpt.isEmpty()) {
@@ -70,7 +80,7 @@ public class SagaCoordinator {
         }
 
         OrderSagaState state = orderSagaStateOpt.get();
-        state.setSagaStatus(SagaStatus.FAILED);
+        state.setOrderSagaStatus(OrderSagaStatus.FAILED);
         state.setUpdatedAt(new Date());
         sagaManager.save(state);
 
@@ -89,14 +99,14 @@ public class SagaCoordinator {
 
         OrderSagaState state = orderSagaStateOpt.get();
 
-        state.setSagaStatus(SagaStatus.FAILED);
-        state.setCurrentStep(SagaStep.COMPENSATING);
+        state.setOrderSagaStatus(OrderSagaStatus.FAILED);
+        state.setCurrentStep(OrderSagaStep.COMPENSATING);
         state.setErrorMessage(errorMessage);
         state.setUpdatedAt(new Date());
         sagaManager.save(state);
 
         // Проходим по завершенным шагам в обратном порядке
-        List<SagaStep> stepsToCompensate = new ArrayList<>(state.getCompletedSteps());
+        List<OrderSagaStep> stepsToCompensate = new ArrayList<>(state.getCompletedSteps());
         Collections.reverse(stepsToCompensate);
 
         if (stepsToCompensate.isEmpty()) {
@@ -107,6 +117,9 @@ public class SagaCoordinator {
         sendCompensationCommand(orderSagaStateOpt.get(), stepsToCompensate.getFirst());
     }
 
+    /**
+     * Отправить команду по определенному текущему шагу.
+     */
     private void sendCommandForStep(OrderSagaState state) {
         switch (state.getCurrentStep()) {
             case PAYMENT -> billingServiceProxy.sendReservePaymentCommand(state);
@@ -115,7 +128,10 @@ public class SagaCoordinator {
         }
     }
 
-    public void sendCompensationCommand(UUID sagaId, SagaStep step) {
+    /**
+     * Отправить компенсирующую команду.
+     */
+    public void sendCompensationCommand(UUID sagaId, OrderSagaStep step) {
         Optional<OrderSagaState> orderSagaStateOpt = sagaManager.getOptById(sagaId);
         if (orderSagaStateOpt.isEmpty()) {
             return;
@@ -124,7 +140,7 @@ public class SagaCoordinator {
         sendCompensationCommand(orderSagaStateOpt.get(), step);
     }
 
-    private void sendCompensationCommand(OrderSagaState state, SagaStep step) {
+    private void sendCompensationCommand(OrderSagaState state, OrderSagaStep step) {
         switch (step) {
             case PAYMENT -> billingServiceProxy.sendReleasePaymentCommand(state);
             case INVENTORY -> inventoryServiceProxy.sendReleaseInventoryCommand(state);

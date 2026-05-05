@@ -23,29 +23,6 @@ public class NotificationServiceProxy {
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-//    /**
-//     * Отправить ивент в сервис нотификаций о том, что не хватило денег на оплату заказа.
-//     */
-//    public void sendOrderCancelledNoMoneyEvent(Order order) {
-//        try {
-//            String payload = objectMapper.writeValueAsString(
-//                    new OrderNotificationEvent(order.getUserId(),
-//                            order.getId(),
-//                            order.getItems(),
-//                            order.getDeliveryAddress(),
-//                            order.getContactPhone(),
-//                            order.getOrderDate(),
-//                            order.getAmount()
-//                    )
-//            );
-//
-//            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, ORDER_CANCELLED_NO_MONEY_KEY, payload);
-//            System.out.println("Message sent");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     public void sendOrderCompletedEvent(Order order, String message) {
         OrderNotificationEvent event = new OrderNotificationEvent(
                 order.getUserId(),
@@ -58,14 +35,10 @@ public class NotificationServiceProxy {
                 order.getAmount()
         );
 
-        sendMessage(ORDER_COMPLETED_KEY, event);
-    }
-
-    private void sendMessage(String routingKey, Object event) {
         try {
             String payload = objectMapper.writeValueAsString(event);
-            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, routingKey, payload);
-            System.out.println("Message sent");
+            rabbitTemplate.convertAndSend(ORDER_EVENTS_TOPIC_EXCHANGE, ORDER_COMPLETED_KEY, payload);
+            System.out.println("Message sent: " + message);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

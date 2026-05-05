@@ -15,7 +15,7 @@ import java.util.*;
 public class DeliveryReservedEvent {
 
     /**
-     * Уникальный идентификатор saga-процесса.
+     * Уникальный идентификатор saga.
      */
     private UUID sagaId;
 

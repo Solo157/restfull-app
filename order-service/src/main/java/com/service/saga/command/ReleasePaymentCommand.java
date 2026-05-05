@@ -8,14 +8,14 @@ import lombok.NoArgsConstructor;
 import java.util.*;
 
 /**
- * Команда на возврат зарезервированных средств пользователю (компенсация в рамках saga).
+ * Команда на возврат зарезервированных средств пользователю.
  */
 @Data
 @NoArgsConstructor
 public class ReleasePaymentCommand {
 
     /**
-     * Уникальный идентификатор saga-процесса.
+     * Уникальный идентификатор saga.
      */
     private UUID sagaId;
 

@@ -1,5 +1,6 @@
 package com.service.service;
 
+import com.service.adapter.OrderItemDTO;
 import com.service.database.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,14 +25,16 @@ public class DeliveryService {
 
     @Transactional
     public void addNewCourier() {
-        courierRepository.save(new Courier());
+        Courier courier = new Courier();
+        courier.setName(UUID.randomUUID() + "-name");
+        courierRepository.save(courier);
     }
 
     /**
      * Назначить курьера на заказ.
      */
     @Transactional
-    public boolean assignmentCourierToOrder(Long orderId, List<OrderItem> items, String address) {
+    public boolean assignmentCourierToOrder(Long orderId, List<OrderItemDTO> itemDTOS, String address) {
         List<Courier> waitingCouriers = courierRepository.findAll().stream()
                 .filter(courier -> courier.getStatus() == CourierStatus.WAITING)
                 .toList();
@@ -42,9 +45,13 @@ public class DeliveryService {
 
         Courier waitingCourier = waitingCouriers.stream().findFirst().get();
         waitingCourier.setStatus(CourierStatus.IN_PROCESS);
+
         Delivery delivery = new Delivery();
         delivery.setCourierId(waitingCourier.getId());
         delivery.setOrderId(orderId);
+        List<OrderItem> items = itemDTOS.stream()
+                .map(item -> new OrderItem(item.getProductName(), item.getPrice(), item.getCount()))
+                .toList();
         delivery.setItems(items);
         delivery.setAddress(address);
 
@@ -76,7 +83,6 @@ public class DeliveryService {
         Courier courier = courierOpt.get();
         courier.setStatus(CourierStatus.WAITING);
         courierRepository.save(courier);
-
         return true;
     }
 

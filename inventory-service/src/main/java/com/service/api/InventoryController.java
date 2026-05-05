@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- * Контроллер биллинга. В этом контроллере все запросы требуют прохождения аутентификации, которая реализована через
+ * Контроллер инвентори сервиса (склада). В этом контроллере все запросы требуют прохождения аутентификации, которая реализована через
  * сервис auth-сервис.
  */
 @RestController
@@ -21,7 +21,7 @@ public class InventoryController {
     private final InventoryService inventoryService;
 
     /**
-     * Получить аккаунт.
+     * Получить информацию по складу.
      */
     @GetMapping("/inventory")
     public ResponseEntity<List<Inventory>> getInventory() {
@@ -31,7 +31,7 @@ public class InventoryController {
     }
 
     /**
-     * Увеличить баланс аккаунта.
+     * Пополнить склад определенным товаром.
      */
     @PostMapping("/inventory/replenish")
     public ResponseEntity<String> replenishInventory(@RequestBody InventoryRequest request) {
@@ -44,7 +44,7 @@ public class InventoryController {
     }
 
     /**
-     * Уменьшить баланс аккаунта.
+     * Уменьшить склад определенным товаром.
      */
     @PostMapping("/inventory/reduce")
     public ResponseEntity<String> reduceInventory(@RequestBody InventoryRequest request) {

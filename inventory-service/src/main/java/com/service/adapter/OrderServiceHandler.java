@@ -11,6 +11,7 @@ import com.service.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -29,6 +30,8 @@ public class OrderServiceHandler {
 
     @RabbitListener(queues = RabbitConfig.INVENTORY_RESERVE_COMMAND_QUEUE)
     public void handleInventoryReserveCommand(String messageBody) {
+        System.out.println("Received message: " + messageBody);
+
         ReserveInventoryCommand command = deserializeCommand(messageBody, ReserveInventoryCommand.class);
         if (command == null) {
             return;
@@ -40,6 +43,7 @@ public class OrderServiceHandler {
         final String idempotencyKey = command.getKeyIdempotence();
 
         if (!saveProcessedCommand(sagaId, orderId, idempotencyKey)) {
+            orderServiceProxy.sendInventoryReservedEvent(sagaId, orderId, false, "reserved command command already done");
             return;
         }
 
@@ -56,6 +60,8 @@ public class OrderServiceHandler {
 
     @RabbitListener(queues = RabbitConfig.INVENTORY_RELEASE_COMMAND_QUEUE)
     public void handleInventoryReleaseCommand(String messageBody) {
+        System.out.println("Received message: " + messageBody);
+
         ReleaseInventoryCommand command = deserializeCommand(messageBody, ReleaseInventoryCommand.class);
         if (command == null) {
             return;
@@ -67,6 +73,7 @@ public class OrderServiceHandler {
         final String idempotencyKey = command.getKeyIdempotence();
 
         if (!saveProcessedCommand(sagaId, orderId, idempotencyKey)) {
+            orderServiceProxy.sendInventoryReleasedEvent(sagaId, orderId, false, "released command command already done");
             return;
         }
 
@@ -82,24 +89,16 @@ public class OrderServiceHandler {
     }
 
     private <T> T deserializeCommand(String messageBody, Class<T> commandType) {
-        System.out.println("Received message: " + messageBody);
         try {
-            T cmd = objectMapper.readValue(messageBody, commandType);
-            System.out.println("Received event for userId: " + extractUserId(cmd));
-            return cmd;
+            return objectMapper.readValue(messageBody, commandType);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    private String extractUserId(Object cmd) {
-        if (cmd instanceof ReserveInventoryCommand) return ((ReserveInventoryCommand) cmd).getUserId();
-        if (cmd instanceof ReleaseInventoryCommand) return ((ReleaseInventoryCommand) cmd).getUserId();
-        return "unknown";
-    }
-
-    private boolean saveProcessedCommand(UUID sagaId, Long orderId, String idempotencyKey) {
+    @Transactional
+    public boolean saveProcessedCommand(UUID sagaId, Long orderId, String idempotencyKey) {
         try {
             ProcessedCommand processedCommand = new ProcessedCommand();
             processedCommand.setSagaId(sagaId);
