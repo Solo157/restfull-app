@@ -34,20 +34,4 @@ public class BillingAccountNoAuthController {
         return ResponseEntity.status(HttpStatus.OK).body("Account registered successfully");
     }
 
-    /**
-     * Проверить, хватит ли денег на аккаунте пользователя для оплаты заказа с определенной суммой.
-     */
-    @GetMapping("/account/{userId}/amount")
-    public ResponseEntity<Void> checkAccountAmount(@PathVariable String userId,
-                                                   @RequestParam("orderId") String orderId,
-                                                   @RequestParam("orderAmount") Integer orderAmount) {
-        System.out.println("checkAccountAmount: oderId = " + orderId);
-        boolean hasMoney = accountService.checkAccountAmount(userId, orderAmount);
-        if (hasMoney) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.noContent().build();
-        }
-    }
-
 }

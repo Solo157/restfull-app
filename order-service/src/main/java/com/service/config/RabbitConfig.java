@@ -13,35 +13,104 @@ public class RabbitConfig {
     public static final String ORDER_EVENTS_TOPIC_EXCHANGE = "order.events";
 
     /**
-     * Ключ для приема ивентов о том, что заказ был создан.
-     */
-    public static final String ORDER_CREATED_KEY = "order.created";
-    /**
-     * Ключ для приема ивентов о том, что заказ отменен по причине нехватки денег.
+     * Ключ для отправки в сервис нотификаций о том, что заказ отменен из-за недостатка средств.
      */
     public static final String ORDER_CANCELLED_NO_MONEY_KEY = "order.cancelled.no_money";
+
     /**
-     * Ключ для приема ивентов о том, что заказ успешно оплачен и был завершен.
+     * Ключ для отправки в сервис нотификаций о том, что заказ успешно завершен.
      */
     public static final String ORDER_COMPLETED_KEY = "order.completed";
 
     /**
-     * Ключ для отправки всем подписчикам что нет денег для оплаты заказа.
+     * Ключ для отправки команды резервирования средств в биллинг-сервис.
      */
-    public static final String PAYMENT_NO_MONEY_KEY = "payment.no_money";
-    /**
-     * Очередь для приема ивентов по заказам у которых не хватило денег на оплату.
-     */
-    public static final String ORDER_PAYMENT_NO_MONEY_QUEUE = "order.payment.no_money";
+    public static final String RESERVE_PAYMENT_COMMAND_KEY = "reserve.payment.command";
 
     /**
-     * Ключ для отправки всем подписчикам что заказ успешно оплачен и деньги списались.
+     * Ключ для отправки ивента из биллинг-сервиса о том, что средства успешно зарезервированы.
      */
-    public static final String PAYMENT_SUCCEEDED_KEY = "payment.succeeded";
+    public static final String PAYMENT_RESERVED_EVENT_KEY = "payment.reserved.event";
+
     /**
-     * Очередь для приема ивентов по заказам у которых было успешной списание по заказу.
+     * Очередь для обработки команды о том, что средства успешно сняты по заказу.
      */
-    public static final String ORDER_PAYMENT_SUCCEEDED_QUEUE = "order.payment.succeeded";
+    public static final String PAYMENT_RESERVED_COMMAND_QUEUE = "payment.reserved.command.queue";
+
+    /**
+     * Ключ для отправки команды освобождения средств в биллинг-сервис.
+     */
+    public static final String RELEASE_PAYMENT_COMMAND_KEY = "release.payment.command";
+
+    /**
+     * Ключ для отправки ивента из биллинг-сервиса о том, что средства возвращены.
+     */
+    public static final String PAYMENT_RELEASED_EVENT_KEY = "payment.released.event";
+
+    /**
+     * Очередь для обработки команды о том, что средства не сняты и возвращены по заказу.
+     */
+    public static final String PAYMENT_RELEASED_COMMAND_QUEUE = "payment.released.command.queue";
+
+    /**
+     * Ключ для отправки команды резервирования курьера в доставку.
+     */
+    public static final String RESERVE_DELIVERY_COMMAND_KEY = "reserve.delivery.command";
+
+    /**
+     * Ключ для отправки ивента о том, что курьер успешно назначен на заказ.
+     */
+    public static final String DELIVERY_RESERVED_EVENT_KEY = "delivery.reserved.event";
+
+    /**
+     * Очередь для обработки команды назначения курьера по заказу.
+     */
+    public static final String DELIVERY_RESERVED_COMMAND_QUEUE = "delivery.reserved.command.queue";
+
+    /**
+     * Ключ для отправки команды снятия курьера с заказа.
+     */
+    public static final String RELEASE_DELIVERY_COMMAND_KEY = "release.delivery.command";
+
+    /**
+     * Ключ для отправки ивента о том, что курьер освобожден и снят с заказа.
+     */
+    public static final String DELIVERY_RELEASED_EVENT_KEY = "delivery.released.event";
+
+    /**
+     * Очередь для обработки команды снятия курьера с заказа.
+     */
+    public static final String DELIVERY_RELEASED_COMMAND_QUEUE = "delivery.released.command.queue";
+
+    /**
+     * Ключ для отправки команды резервирования товара в инвентарь.
+     */
+    public static final String RESERVE_INVENTORY_COMMAND_KEY = "reserve.inventory.command";
+
+    /**
+     * Ключ для отправки ивента о том, что товар успешно зарезервирован.
+     */
+    public static final String INVENTORY_RESERVED_EVENT_KEY = "inventory.reserved.event";
+
+    /**
+     * Очередь для обработки команды резервирования товара.
+     */
+    public static final String INVENTORY_RESERVED_QUEUE = "inventory.reserved.command.queue";
+
+    /**
+     * Ключ для отправки команды возврата товара в инвентарь.
+     */
+    public static final String RELEASE_INVENTORY_COMMAND_KEY = "release.inventory.command";
+
+    /**
+     * Ключ для отправки ивента о том, что товар возвращен на склад.
+     */
+    public static final String INVENTORY_RELEASED_EVENT_KEY = "inventory.released.event";
+
+    /**
+     * Очередь для обработки команды возврата товара.
+     */
+    public static final String INVENTORY_RELEASED_COMMAND_QUEUE = "inventory.released.command.queue";
 
     @Bean
     public TopicExchange topicExchange() {
@@ -49,33 +118,93 @@ public class RabbitConfig {
     }
 
     @Bean
-    public Queue orderPaymentNoMoneyQueue() {
-        return new Queue(ORDER_PAYMENT_NO_MONEY_QUEUE, true, false, false);
+    public Queue paymentReservedQueue() {
+        return new Queue(PAYMENT_RESERVED_COMMAND_QUEUE, true, false, false);
     }
 
     @Bean
-    public Queue orderPaymentSucceededQueue() {
-        return new Queue(ORDER_PAYMENT_SUCCEEDED_QUEUE, true, false, false);
+    public Queue paymentReleasedQueue() {
+        return new Queue(PAYMENT_RELEASED_COMMAND_QUEUE, true, false, false);
+    }
+
+    @Bean
+    public Queue inventoryReservedQueue() {
+        return new Queue(INVENTORY_RESERVED_QUEUE, true, false, false);
+    }
+
+    @Bean
+    public Queue inventoryReleasedQueue() {
+        return new Queue(INVENTORY_RELEASED_COMMAND_QUEUE, true, false, false);
+    }
+
+    @Bean
+    public Queue deliveryReservedQueue() {
+        return new Queue(DELIVERY_RESERVED_COMMAND_QUEUE, true, false, false);
+    }
+
+    @Bean
+    public Queue deliveryReleasedQueue() {
+        return new Queue(DELIVERY_RELEASED_COMMAND_QUEUE, true, false, false);
     }
 
     /**
-     * Привязка очереди в ордер-сервисе на ключ неуспешной оплаты по причине отсутствия денег.
+     * Привязка очереди резервирования оплаты к обмену с ключем события о резервировании платежа.
      */
     @Bean
-    public Binding bindOrderPaymentNoMoneyQueueToExchange(Queue orderPaymentNoMoneyQueue, TopicExchange topicExchange) {
-        return BindingBuilder.bind(orderPaymentNoMoneyQueue)
+    public Binding bindPaymentReservedQueueToExchange(Queue paymentReservedQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(paymentReservedQueue)
                 .to(topicExchange)
-                .with(PAYMENT_NO_MONEY_KEY);
+                .with(PAYMENT_RESERVED_EVENT_KEY);
     }
 
     /**
-     * Привязка очереди в ордер-сервисе на ключ успешной оплаты.
+     * Привязка очереди освобождения оплаты к обмену с ключем события о возврате платежа.
      */
     @Bean
-    public Binding bindOrderPaymentSucceededQueueToExchange(Queue orderPaymentSucceededQueue, TopicExchange topicExchange) {
-        return BindingBuilder.bind(orderPaymentSucceededQueue)
+    public Binding bindPaymentReleasedQueueToExchange(Queue paymentReleasedQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(paymentReleasedQueue)
                 .to(topicExchange)
-                .with(PAYMENT_SUCCEEDED_KEY);
+                .with(PAYMENT_RELEASED_EVENT_KEY);
+    }
+
+    /**
+     * Привязка очереди резервирования инвентаря к обмену с ключем события о резервировании товара.
+     */
+    @Bean
+    public Binding bindInventoryReservedQueueToExchange(Queue inventoryReservedQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(inventoryReservedQueue)
+                .to(topicExchange)
+                .with(INVENTORY_RESERVED_EVENT_KEY);
+    }
+
+    /**
+     * Привязка очереди возврата инвентаря к обмену с ключем события о возврате товара.
+     */
+    @Bean
+    public Binding bindInventoryReleasedQueueToExchange(Queue inventoryReleasedQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(inventoryReleasedQueue)
+                .to(topicExchange)
+                .with(INVENTORY_RELEASED_EVENT_KEY);
+    }
+
+    /**
+     * Привязка очереди резервирования доставки к обмену с ключем события о назначении курьера.
+     */
+    @Bean
+    public Binding bindDeliveryReservedQueueToExchange(Queue deliveryReservedQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(deliveryReservedQueue)
+                .to(topicExchange)
+                .with(DELIVERY_RESERVED_EVENT_KEY);
+    }
+
+    /**
+     * Привязка очереди освобождения доставки к обмену с ключем события о снятии курьера с заказа.
+     */
+    @Bean
+    public Binding bindDeliveryReleasedQueueToExchange(Queue deliveryReleasedQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(deliveryReleasedQueue)
+                .to(topicExchange)
+                .with(DELIVERY_RELEASED_EVENT_KEY);
     }
 
 }

@@ -1,7 +1,5 @@
 package com.service.service;
 
-import com.service.adapter.DistributedAdapterSender;
-import com.service.adapter.events.OrderCreatedEvent;
 import com.service.database.Account;
 import com.service.database.AccountRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,19 +15,9 @@ import java.util.*;
 @RequiredArgsConstructor
 public class BillingAccountService {
 
-    private final DistributedAdapterSender distributedAdapterSender;
     private final AccountRepository accountRepository;
 
-    /**
-     * Проверка хватает ли средств на аккаунте для суммы ордера.
-     */
-    public boolean checkAccountAmount(String userId, Integer orderAmount) {
-        Optional<Account> accountOpt = accountRepository.findByUserId(userId);
-        return accountOpt
-                .filter(account -> orderAmount <= account.getAmount())
-                .isPresent();
-    }
-
+    @Transactional(readOnly = true)
     public Account getAccount(String userId) {
         Optional<Account> userAccountOpt = accountRepository.findByUserId(userId);
         return userAccountOpt.orElse(null);
@@ -38,6 +26,7 @@ public class BillingAccountService {
     /**
      * Создать аккаунт для пользователя.
      */
+    @Transactional
     public void createAccount(String userId) {
         Account account = new Account();
         account.setUserId(userId);
@@ -82,21 +71,6 @@ public class BillingAccountService {
         System.out.println("withdrawAccount: " + userAccount);
         accountRepository.save(userAccount);
         return true;
-    }
-
-    /**
-     * Обработка приходящего ивента о том, что заказ создан. Нужно снять деньги с аккаунта за заказ.
-     */
-    public void handleOrderCreatedEvent(OrderCreatedEvent event) {
-        System.out.println("handleOrderStatusEvent: " + event);
-
-        boolean withdrawAccount = withdrawAccount(event.getUserId(), event.getAmount());
-        if (withdrawAccount) {
-            distributedAdapterSender.sendOrderPaymentSucceededEvent(event.getUserId(), event.getOrderId());
-            return;
-        }
-
-        distributedAdapterSender.sendOrderPaymentNoMoneyEvent(event.getUserId(), event.getOrderId());
     }
 
 }

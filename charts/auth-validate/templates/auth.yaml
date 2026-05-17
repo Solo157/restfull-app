@@ -31,3 +31,17 @@ spec:
                 name: {{ include "order-service.name" . }}-service
                 port:
                   number: 8090
+          - path: /api/delivery/
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "delivery-service.name" . }}-service
+                port:
+                  number: 8090
+          - path: /api/inventory/
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "inventory-service.name" . }}-service
+                port:
+                  number: 8090

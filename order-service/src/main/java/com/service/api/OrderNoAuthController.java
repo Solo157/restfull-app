@@ -1,6 +1,5 @@
 package com.service.api;
 
-import com.service.service.OrderManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +16,6 @@ import java.util.*;
 @RequestMapping("/order")
 @RequiredArgsConstructor
 public class OrderNoAuthController {
-
-    private final OrderManagerService orderManagerService;
 
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {

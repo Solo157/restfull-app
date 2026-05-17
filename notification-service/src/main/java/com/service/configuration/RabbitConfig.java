@@ -13,18 +13,10 @@ public class RabbitConfig {
     public static final String ORDER_EVENTS_TOPIC_EXCHANGE = "order.events";
 
     /**
-     * Ключ для приема ивентов о том, что заказ отменен по причине нехватки денег.
-     */
-    public static final String ORDER_CANCELLED_NO_MONEY_KEY = "order.cancelled.no_money";
-    /**
      * Ключ для приема ивентов о том, что заказ успешно оплачен и был завершен.
      */
     public static final String ORDER_COMPLETED_KEY = "order.completed";
 
-    /**
-     * Очередь для обработки ивентов о том, что заказ был отменен по причине нехватки денег.
-     */
-    public static final String NOTIFICATION_ORDER_CANCELED_QUEUE = "notification.order.cancelled.no_money";
     /**
      * Очередь для обработки ивентов о том, что заказ был успешно завершен.
      */
@@ -36,24 +28,8 @@ public class RabbitConfig {
     }
 
     @Bean
-    public Queue notificationOrderCanceledQueue() {
-        return new Queue(NOTIFICATION_ORDER_CANCELED_QUEUE, true, false, false);
-    }
-
-    @Bean
     public Queue notificationOrderCompletedQueue() {
         return new Queue(NOTIFICATION_ORDER_COMPLETED_QUEUE, true, false, false);
-    }
-
-    /**
-     * Привязка очереди в нотификационном сервисе по обработке нехватки денег на аккаунте пользователя.
-     */
-    @Bean
-    public Binding bindOrderNotificationQueueToExchangeWithOrderCanceledNoMoneyKey(Queue notificationOrderCanceledQueue,
-                                                                                   TopicExchange topicExchange) {
-        return BindingBuilder.bind(notificationOrderCanceledQueue)
-                .to(topicExchange)
-                .with(ORDER_CANCELLED_NO_MONEY_KEY);
     }
 
     /**

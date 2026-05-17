@@ -41,32 +41,18 @@ public class NotificationService {
                 });
     }
 
-    /**
-     * Обработкать ивент о том, что заказ был отменен.
-     */
-    public void handleOrderCancelledEvent(OrderNotificationEvent event) {
-        saveOrderInfoWithMessage(event, "Order is cancelled because account not enough money.");
-    }
-
-    /**
-     * Обработкать ивент о том, что заказ был успешно обработан и завершен.
-     */
-    public void handleOrderSucceededEvent(OrderNotificationEvent event) {
-        saveOrderInfoWithMessage(event, "Order is paid and completed.");
-    }
-
     @Transactional
-    public void saveOrderInfoWithMessage(OrderNotificationEvent event, String message) {
+    public void saveOrderInfoWithMessage(OrderNotificationEvent event) {
         Notification notification = getOrCreateNotification(event.getUserId());
 
         OrderInfo order = new OrderInfo();
-        order.setMessage(message);
+        order.setMessage(event.getMessage());
         order.setOrderId(event.getOrderId());
         order.setNotification(notification);
         order.setAmount(event.getAmount());
 
         List<OrderItemInfo> orderItemInfos = event.getItems().stream()
-                .map(item -> new OrderItemInfo(item.getProductName(), item.getPrice()))
+                .map(item -> new OrderItemInfo(item.getProductName(), item.getPrice(), item.getCount()))
                 .toList();
         order.setItemInfos(orderItemInfos);
 

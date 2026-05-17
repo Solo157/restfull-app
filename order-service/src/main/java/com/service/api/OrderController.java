@@ -21,10 +21,10 @@ public class OrderController {
     private final OrderManagerService orderManagerService;
 
     /**
-     * Получить ордер пользователя.
+     * Получить заказ пользователя.
      */
     @GetMapping
-    public ResponseEntity<?> getOrder(@RequestParam String userId) {
+    public ResponseEntity<?> getOrders(@RequestParam String userId) {
         List<OrderDTO> orderDTOs = orderManagerService.getOrderDTOs(userId);
         return ResponseEntity.status(HttpStatus.OK).body(orderDTOs);
     }

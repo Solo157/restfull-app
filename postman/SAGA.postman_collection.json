@@ -1,0 +1,1046 @@
+{
+	"info": {
+		"_postman_id": "843bb78a-88cd-475b-a3fe-541876f99722",
+		"name": "SAGA",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17002247"
+	},
+	"item": [
+		{
+			"name": "register",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User registered\", function () {",
+							"   pm.response.to.have.status(200);",
+							"   pm.environment.set(\"userId\", pm.response.json().userId);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const randomUsername = `user_${Math.random().toString(36).substring(2, 8)}`;",
+							"const randomEmail = `test_${Math.random().toString(36).substring(2, 8)}@example.com`;",
+							"const randomPassword = `Pass_${Math.random().toString(36).substring(2, 10)}`;",
+							"const fullName = `Name_${Math.random().toString(36).substring(2, 8)} ${Math.random().toString(36).substring(2, 8)}`;",
+							"",
+							"pm.environment.set(\"username\", randomUsername);",
+							"pm.environment.set(\"password\", randomPassword);",
+							"pm.environment.set(\"email\", randomEmail);",
+							"pm.environment.set(\"fullName\", fullName);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\",\n    \"email\": \"{{email}}\",\n    \"fullName\": \"{{fullName}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User logged in\", function () {",
+							"   pm.response.to.have.status(200);",
+							"   pm.environment.set(\"access_token\", pm.response.json().token);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "showUserMoney",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User has 0 amount\", function () {",
+							"   pm.response.to.have.status(200);",
+							"   const userId = pm.environment.get(\"userId\");",
+							"   pm.expect(pm.response.json().userId).to.eql(userId);",
+							"   pm.expect(pm.response.json().amount == 0).to.be.true;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token1}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/billing/v1/account?userId={{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"billing",
+						"v1",
+						"account"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "{{userId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deposit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Deposit\", function () {",
+							"   pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\": \"{{userId}}\",\n    \"amount\": 100\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/billing/v1/account/deposit",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"billing",
+						"v1",
+						"account",
+						"deposit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "showUserMoney",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Show user money after deposit\", function () {",
+							"   pm.response.to.have.status(200);",
+							"   const userId = pm.environment.get(\"userId\");",
+							"   pm.expect(pm.response.json().userId).to.eql(userId);",
+							"   pm.expect(pm.response.json().amount == 100).to.be.true;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token1}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/billing/v1/account?userId={{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"billing",
+						"v1",
+						"account"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "{{userId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addCourier",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Deposit\", function () {",
+							"   pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"Pizza Margherita\",\n      \"price\": 5\n    },\n    {\n      \"productName\": \"Coca-Cola\",\n      \"price\": 5\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/delivery/v1/delivery/courier",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"delivery",
+						"v1",
+						"delivery",
+						"courier"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addInventory",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Add product to inventory\", function () {",
+							"   pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productName\": \"table\",\n  \"count\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/inventory/v1/inventory/replenish",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"inventory",
+						"v1",
+						"inventory",
+						"replenish"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createOrder",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Create order with delay\", function (done) {",
+							"    pm.response.to.have.status(200);",
+							"    // задержка нужна при первом вызове",
+							"    setTimeout(function () {",
+							"        done();",
+							"    }, 500);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"table\",\n      \"price\": 2,\n      \"count\": 2\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/order/v1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"order",
+						"v1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getInventory",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User has 0 amount\", function () {",
+							"   const json = pm.response.json();",
+							"",
+							"   pm.response.to.have.status(200);",
+							"   pm.expect(json[0].productName).to.eql(\"table\");",
+							"   pm.expect(json[0].count).to.eql(0);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productName\": \"table\",\n  \"count\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/inventory/v1/inventory",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"inventory",
+						"v1",
+						"inventory"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "showUserMoney",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Show user money. User amount not changed\", function () {",
+							"   pm.response.to.have.status(200);",
+							"   const userId = pm.environment.get(\"userId\");",
+							"   pm.expect(pm.response.json().userId).to.eql(userId);",
+							"   pm.expect(pm.response.json().amount == 96).to.be.true;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token1}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/billing/v1/account?userId={{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"billing",
+						"v1",
+						"account"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "{{userId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createOrder",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Create order with delay\", function (done) {",
+							"    pm.response.to.have.status(200);",
+							"    // задержка нужна при первом вызове",
+							"    setTimeout(function () {",
+							"        done();",
+							"    }, 500);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"table\",\n      \"price\": 2,\n      \"count\": 2\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/order/v1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"order",
+						"v1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getInventory",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User has 0 amount\", function () {",
+							"   const json = pm.response.json();",
+							"",
+							"   pm.response.to.have.status(200);",
+							"   pm.expect(json[0].productName).to.eql(\"table\");",
+							"   pm.expect(json[0].count).to.eql(0);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productName\": \"table\",\n  \"count\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/inventory/v1/inventory",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"inventory",
+						"v1",
+						"inventory"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "showUserMoney",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Show user money. User amount not changed\", function () {",
+							"   pm.response.to.have.status(200);",
+							"   const userId = pm.environment.get(\"userId\");",
+							"   pm.expect(pm.response.json().userId).to.eql(userId);",
+							"   pm.expect(pm.response.json().amount == 96).to.be.true;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token1}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/billing/v1/account?userId={{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"billing",
+						"v1",
+						"account"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "{{userId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addInventory",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Deposit\", function () {",
+							"   pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productName\": \"table\",\n  \"count\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/inventory/v1/inventory/replenish",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"inventory",
+						"v1",
+						"inventory",
+						"replenish"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createOrder",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Create order with delay\", function (done) {",
+							"    pm.response.to.have.status(200);",
+							"    // задержка нужна при первом вызове",
+							"    setTimeout(function () {",
+							"        done();",
+							"    }, 500);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"table\",\n      \"price\": 2,\n      \"count\": 2\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/order/v1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"order",
+						"v1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getInventory",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User has 0 amount\", function () {",
+							"   const json = pm.response.json();",
+							"",
+							"   pm.response.to.have.status(200);",
+							"   pm.expect(json[0].productName).to.eql(\"table\");",
+							"   pm.expect(json[0].count).to.eql(2);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productName\": \"table\",\n  \"count\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/inventory/v1/inventory",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"inventory",
+						"v1",
+						"inventory"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "showUserMoney",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Show user money. User amount not changed\", function () {",
+							"   pm.response.to.have.status(200);",
+							"   const userId = pm.environment.get(\"userId\");",
+							"   pm.expect(pm.response.json().userId).to.eql(userId);",
+							"   pm.expect(pm.response.json().amount == 96).to.be.true;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token1}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/billing/v1/account?userId={{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"billing",
+						"v1",
+						"account"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "{{userId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "show user notifications",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Show user notifications. There are two messages\", function () {",
+							"   pm.response.to.have.status(200);",
+							"   const jsonData = pm.response.json();",
+							"",
+							"   // Проверка, что ответ — массив",
+							"   pm.expect(jsonData).to.be.an('array');",
+							"",
+							"   // Или более точная проверка наличия конкретного объекта",
+							"   pm.expect(jsonData.some(item => item.message === \"order completed\")).to.be.true;",
+							"   pm.expect(jsonData.some(item => item.message === \"inventory for order is not reserved\")).to.be.true;",
+							"   pm.expect(jsonData.some(item => item.message === \"courier is not assigment\")).to.be.true;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/notification/v1/notifications/{{userId}}/messages",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"notification",
+						"v1",
+						"notifications",
+						"{{userId}}",
+						"messages"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

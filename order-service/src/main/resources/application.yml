@@ -1,11 +1,6 @@
 server:
   port: 8090
 
-services:
-  external:
-    billing:
-      port: 8090
-
 spring:
   application:
     name: order-service

@@ -1,0 +1,15 @@
+replicaCount: 1
+
+service:
+  port: 8090
+  targetPort: 8090
+  type: ClusterIP
+
+image:
+  deliveryRepository: ghcr.io/solo157/restfull-delivery
+  tag: latest
+  pullPolicy: Always
+
+app:
+  deliveryContainerPort: 8090
+  deliveryHealthPath: /delivery/health
