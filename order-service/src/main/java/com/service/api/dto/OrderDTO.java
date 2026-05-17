@@ -27,5 +27,9 @@ public class OrderDTO {
      * Дата заказа.
      */
     private String orderDate;
+    /**
+     * Версия заказа.
+     */
+    private Long version;
 
 }

@@ -427,7 +427,13 @@
 					]
 				},
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "xRequestId",
+						"value": "456",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"table\",\n      \"price\": 2,\n      \"count\": 2\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
@@ -604,7 +610,13 @@
 					]
 				},
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "xRequestId",
+						"value": "457",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"table\",\n      \"price\": 2,\n      \"count\": 2\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
@@ -836,7 +848,13 @@
 					]
 				},
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "xRequestId",
+						"value": "458",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productName\": \"table\",\n      \"price\": 2,\n      \"count\": 2\n    }\n  ],\n  \"deliveryAddress\": \"123 Main St, Cityville\",\n  \"contactPhone\": \"+7-912-345-67-00\",\n  \"orderDate\": \"2024-04-27T14:30:00\"\n}",
