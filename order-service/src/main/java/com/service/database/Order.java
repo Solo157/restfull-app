@@ -32,6 +32,9 @@ public class Order {
     private String contactPhone;
     private String orderDate;
 
+    @Version
+    private Long version;
+
     @PersistenceCreator
     public Order() {
     }
